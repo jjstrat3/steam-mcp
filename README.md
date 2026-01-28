@@ -16,6 +16,15 @@ MCP server for the Steam Web API. Provides tools for searching Steam games, fetc
 | `get-current-players` | Current number of in-game players | No |
 | `get-news` | Latest news articles and patch notes | No |
 
+## Quick Start (Docker)
+
+Pull the pre-built image from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/jjstrat3/steam-mcp:latest
+docker run -i -e STEAM_API_KEY=your_key -e STEAM_USER_ID=your_id ghcr.io/jjstrat3/steam-mcp:latest
+```
+
 ## Setup
 
 ### Get a Steam API Key
@@ -48,6 +57,15 @@ node build/index.js
 
 ### Docker
 
+#### Pre-built Image (Recommended)
+
+```bash
+docker pull ghcr.io/jjstrat3/steam-mcp:latest
+docker run -i -e STEAM_API_KEY=your_key -e STEAM_USER_ID=your_id ghcr.io/jjstrat3/steam-mcp:latest
+```
+
+#### Build Locally
+
 ```bash
 docker build -t steam-mcp .
 docker run -i -e STEAM_API_KEY=your_key -e STEAM_USER_ID=your_id steam-mcp
@@ -72,14 +90,14 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-Or with Docker:
+Or with Docker (using pre-built image):
 
 ```json
 {
   "mcpServers": {
     "steam": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "-e", "STEAM_API_KEY=your_key", "-e", "STEAM_USER_ID=your_id", "steam-mcp"]
+      "args": ["run", "-i", "--rm", "-e", "STEAM_API_KEY=your_key", "-e", "STEAM_USER_ID=your_id", "ghcr.io/jjstrat3/steam-mcp:latest"]
     }
   }
 }
