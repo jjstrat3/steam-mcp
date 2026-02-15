@@ -10,19 +10,23 @@ MCP server providing Steam Web API access to AI assistants.
 - **Transport**: stdio (for Claude Desktop, Docker, MCP Inspector)
 - **Package**: `steam-mcp` v1.0.0
 - **Tools**: 9 registered tools for Steam API access
-- **Tests**: None — use MCP Inspector (`npm run inspector`) for interactive testing
+- **Tests**: Vitest unit tests for API functions and cache module
+- **Linting**: ESLint with TypeScript plugin
 
 ## Project Structure
 
 ```
 steam-mcp/
 ├── .github/workflows/
+│   ├── ci.yml              # PR quality gates (lint, test, build, docker)
 │   ├── docker-publish.yml  # Multi-platform Docker image → GHCR
 │   └── release.yml         # GitHub Release on v* tags
 ├── src/
 │   ├── index.ts            # Server init, tool registration, stdio transport
 │   ├── steam-api.ts        # Fetch wrappers for all Steam API endpoints
+│   ├── steam-api.test.ts   # Unit tests for API fetch functions
 │   ├── cache.ts            # Lazy-loaded Fuse.js search index (24h TTL)
+│   ├── cache.test.ts       # Unit tests for search functionality
 │   ├── types.ts            # TypeScript interfaces mirroring Steam API responses
 │   └── tools/              # One file per tool, each exports register* function
 │       ├── search-apps.ts
@@ -35,6 +39,8 @@ steam-mcp/
 │       ├── get-current-players.ts
 │       └── get-news.ts
 ├── Dockerfile              # Multi-stage build (node:22-alpine)
+├── eslint.config.js        # ESLint 9 flat config for TypeScript
+├── vitest.config.ts        # Vitest configuration
 ├── package.json
 └── tsconfig.json
 ```
@@ -48,6 +54,10 @@ steam-mcp/
 | `zod` | Schema validation for tool parameters |
 | `typescript` (dev) | Compiler |
 | `@types/node` (dev) | Node.js type definitions |
+| `eslint` (dev) | Linter for code quality |
+| `@typescript-eslint/*` (dev) | TypeScript support for ESLint |
+| `vitest` (dev) | Unit testing framework |
+| `@vitest/coverage-v8` (dev) | Code coverage reporting |
 
 ## Tools
 
@@ -148,6 +158,12 @@ Each Steam endpoint has a dedicated async function that:
 | `npm run dev` | Watch mode compilation |
 | `npm start` | Run the compiled server (`node build/index.js`) |
 | `npm run inspector` | Launch MCP Inspector for interactive tool testing |
+| `npm run typecheck` | Type check without emitting files |
+| `npm run lint` | Lint source files with ESLint |
+| `npm run lint:fix` | Lint and auto-fix issues |
+| `npm test` | Run unit tests |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:coverage` | Run tests with coverage report |
 
 ## Docker
 
@@ -177,12 +193,21 @@ docker run -i -e STEAM_API_KEY=xxx -e STEAM_USER_ID=xxx ghcr.io/jjstrat3/steam-m
 
 ## CI/CD
 
+### CI Quality Gates (`.github/workflows/ci.yml`)
+- **Triggers**: All PRs and pushes to main/master
+- **Quality Gates**:
+  - Type checking (`npm run typecheck`)
+  - Linting (`npm run lint`)
+  - Unit tests (`npm test`)
+  - Build validation (`npm run build`)
+  - Docker build validation (PRs only, does not push)
+- All gates must pass before PR can be merged
+
 ### Docker Publish (`.github/workflows/docker-publish.yml`)
-- **Triggers**: push to main/master, v* tags, PRs to main/master
+- **Triggers**: push to main/master and v* tags only
 - **Builds**: multi-platform images (linux/amd64, linux/arm64)
 - **Publishes**: to GitHub Container Registry (`ghcr.io`)
-- **Tags**: branch name, PR ref, semver patterns, `latest` on default branch
-- PRs build but do not push
+- **Tags**: branch name, semver patterns, `latest` on default branch
 
 ### Release (`.github/workflows/release.yml`)
 - **Triggers**: push of v* tags
@@ -193,8 +218,10 @@ docker run -i -e STEAM_API_KEY=xxx -e STEAM_USER_ID=xxx ghcr.io/jjstrat3/steam-m
 1. Create `src/tools/tool-name.ts` with `registerToolName` export
 2. Add fetch function to `src/steam-api.ts` if needed
 3. Add response types to `src/types.ts`
-4. Import and call register function in `src/index.ts`
-5. Update README.md tools table
+4. Add unit tests for new fetch function in `src/steam-api.test.ts`
+5. Import and call register function in `src/index.ts`
+6. Update README.md tools table
+7. Run `npm run lint` and `npm test` to ensure quality gates pass
 
 ## API Reference
 

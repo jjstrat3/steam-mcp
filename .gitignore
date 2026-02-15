@@ -28,5 +28,8 @@ npm-debug.log*
 # TypeScript cache
 *.tsbuildinfo
 
+# Test coverage
+coverage/
+
 # Claude Code local settings
 .claude/
