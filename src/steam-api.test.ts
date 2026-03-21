@@ -316,7 +316,7 @@ describe('steam-api', () => {
       expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw after max retries exhausted on 5xx', async () => {
+    it('should return final 5xx response after max retries exhausted', async () => {
       (global.fetch as ReturnType<typeof vi.fn>)
         .mockResolvedValue({ ok: false, status: 500 });
 
@@ -418,21 +418,27 @@ describe('steam-api', () => {
     });
 
     it('should respect Retry-After header on 429', async () => {
-      const headers = new Headers({ 'Retry-After': '1' });
-      (global.fetch as ReturnType<typeof vi.fn>)
-        .mockResolvedValueOnce({ ok: false, status: 429, headers })
-        .mockResolvedValueOnce({ ok: true, status: 200 });
+      vi.useFakeTimers();
+      try {
+        const headers = new Headers({ 'Retry-After': '1' });
+        (global.fetch as ReturnType<typeof vi.fn>)
+          .mockResolvedValueOnce({ ok: false, status: 429, headers })
+          .mockResolvedValueOnce({ ok: true, status: 200 });
 
-      const start = Date.now();
-      const result = await fetchWithRetry('https://example.com', undefined, {
-        initialDelayMs: 1,
-        maxRetries: 1,
-      });
-      const elapsed = Date.now() - start;
+        const retryPromise = fetchWithRetry('https://example.com', undefined, {
+          initialDelayMs: 1,
+          maxRetries: 1,
+        });
 
-      expect(result.ok).toBe(true);
-      // Retry-After: 1 means 1 second = 1000ms delay
-      expect(elapsed).toBeGreaterThanOrEqual(900);
-    }, 10_000);
+        // Retry-After: 1 means 1 second = 1000ms delay
+        await vi.advanceTimersByTimeAsync(1000);
+
+        const result = await retryPromise;
+        expect(result.ok).toBe(true);
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });

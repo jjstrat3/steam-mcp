@@ -70,12 +70,22 @@ export async function fetchWithRetry(
   let lastError: Error | undefined;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      const timeoutSignal = AbortSignal.timeout(timeoutMs);
-      const signal = init?.signal
-        ? AbortSignal.any([init.signal, timeoutSignal])
-        : timeoutSignal;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(
+      () =>
+        controller.abort(
+          new DOMException(
+            `Request timed out after ${timeoutMs}ms`,
+            "TimeoutError",
+          ),
+        ),
+      timeoutMs,
+    );
+    const signal = init?.signal
+      ? AbortSignal.any([init.signal, controller.signal])
+      : controller.signal;
 
+    try {
       const res = await fetch(url, {
         ...init,
         signal,
@@ -116,6 +126,8 @@ export async function fetchWithRetry(
       }
 
       throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
