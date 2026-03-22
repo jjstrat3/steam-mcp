@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   fetchAppList,
+  fetchPlayerAchievements,
   fetchStoreDetails,
   fetchCurrentPlayers,
   fetchNews,
   fetchOwnedGames,
   fetchWithRetry,
+  PlayerAchievementsUnavailableError,
 } from './steam-api.js';
 
 // Mock fetch globally
@@ -257,6 +259,66 @@ describe('steam-api', () => {
 
       await expect(fetchOwnedGames('test-key', '12345')).rejects.toThrow(
         'Failed to fetch owned games: HTTP 403'
+      );
+    });
+  });
+
+  describe('fetchPlayerAchievements', () => {
+    it('should return achievements when Steam reports success', async () => {
+      const mockResponse = {
+        playerstats: {
+          steamID: '12345',
+          gameName: 'Dota 2',
+          success: true,
+          achievements: [
+            {
+              apiname: 'FIRST_WIN',
+              achieved: 1,
+              unlocktime: 1700000000,
+            },
+          ],
+        },
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await fetchPlayerAchievements('test-key', '12345', 570);
+
+      expect(result).toEqual(mockResponse.playerstats.achievements);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('GetPlayerAchievements'),
+        expect.objectContaining({ signal: expect.any(Object) }),
+      );
+    });
+
+    it('should throw a typed error when Steam does not provide achievement data', async () => {
+      const mockResponse = {
+        playerstats: {
+          steamID: '12345',
+          gameName: 'Dota 2',
+          success: false,
+        },
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      let thrown: unknown;
+      try {
+        await fetchPlayerAchievements('test-key', '12345', 570);
+      } catch (error) {
+        thrown = error;
+      }
+
+      expect(thrown).toBeInstanceOf(PlayerAchievementsUnavailableError);
+      expect(thrown).toHaveProperty(
+        'message',
+        "Could not retrieve achievements. The game may have no achievements, or the user's profile may be private."
       );
     });
   });
