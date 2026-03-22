@@ -139,7 +139,7 @@ export async function fetchWithRetry(
 // --- Steam API fetch functions ---
 
 // ~240k apps at 50k/page = ~5 pages; 20 is generous headroom.
-export const MAX_APP_LIST_PAGES = 20;
+const MAX_APP_LIST_PAGES = 20;
 
 export async function fetchAppList(apiKey: string): Promise<SteamApp[]> {
   const allApps: SteamApp[] = [];
@@ -182,7 +182,7 @@ export async function fetchAppList(apiKey: string): Promise<SteamApp[]> {
       throw new Error(
         `App list pagination stuck: last_appid did not advance ` +
         `(was ${lastAppId}, got ${newLastAppId}) on page ${page + 1}. ` +
-        `Collected ${allApps.length} apps so far.`
+        `Collected ${allApps.length - apps.length} apps before failure.`
       );
     }
     lastAppId = newLastAppId;

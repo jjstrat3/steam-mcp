@@ -6,7 +6,6 @@ import {
   fetchNews,
   fetchOwnedGames,
   fetchWithRetry,
-  MAX_APP_LIST_PAGES,
 } from './steam-api.js';
 
 // Mock fetch globally
@@ -332,23 +331,25 @@ describe('steam-api', () => {
       );
     });
 
-    it('should stop after MAX_APP_LIST_PAGES iterations and log warning', async () => {
-      const warnSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    it('should stop after max page iterations and log warning', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
-        for (let i = 0; i < MAX_APP_LIST_PAGES; i++) {
+        // Internal cap is 20 pages — mock exactly that many
+        const maxPages = 20;
+        for (let i = 0; i < maxPages; i++) {
           const appid = (i + 1) * 1000;
           (global.fetch as ReturnType<typeof vi.fn>)
             .mockResolvedValueOnce(mockPage([{ appid, name: `Game ${i}` }], true, appid));
         }
 
         const result = await fetchAppList('test-key');
-        expect(result).toHaveLength(MAX_APP_LIST_PAGES);
-        expect(global.fetch).toHaveBeenCalledTimes(MAX_APP_LIST_PAGES);
-        expect(warnSpy).toHaveBeenCalledWith(
+        expect(result).toHaveLength(maxPages);
+        expect(global.fetch).toHaveBeenCalledTimes(maxPages);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
           expect.stringContaining('pagination stopped')
         );
       } finally {
-        warnSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
       }
     });
 
