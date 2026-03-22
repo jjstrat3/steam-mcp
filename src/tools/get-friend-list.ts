@@ -66,6 +66,7 @@ export function registerGetFriendList(
 
         // Batch-fetch player summaries to get display names (100 per batch)
         const nameMap = new Map<string, string>();
+        let failedSummaryBatches = 0;
         for (let i = 0; i < friends.length; i += 100) {
           const batch = friends.slice(i, i + 100);
           const ids = batch.map((f) => f.steamid);
@@ -75,7 +76,28 @@ export function registerGetFriendList(
               nameMap.set(s.steamid, s.personaname);
             }
           } catch {
-            // If enrichment fails, continue without names
+            failedSummaryBatches += 1;
+          }
+        }
+
+        const missingDisplayNames = friends.filter(
+          (friend) => !nameMap.has(friend.steamid)
+        ).length;
+        const notices: string[] = [];
+
+        if (missingDisplayNames > 0) {
+          if (nameMap.size === 0 && failedSummaryBatches > 0) {
+            notices.push(
+              "Note: Friend list loaded, but display-name enrichment is temporarily unavailable. Showing Steam IDs without display names."
+            );
+          } else if (failedSummaryBatches > 0) {
+            notices.push(
+              `Note: Friend list loaded, but display-name enrichment was partial. Display names are unavailable for ${missingDisplayNames} of ${friends.length} friends.`
+            );
+          } else {
+            notices.push(
+              `Note: Steam returned the friend list, but display names were unavailable for ${missingDisplayNames} of ${friends.length} friends.`
+            );
           }
         }
 
@@ -84,12 +106,18 @@ export function registerGetFriendList(
           const since = new Date(f.friend_since * 1000).toLocaleDateString();
           return `${name} (${f.steamid}) - Friends since ${since}`;
         });
+        const sections = [
+          `${friends.length} friends for Steam ID ${userId}:`,
+          ...notices,
+          "",
+          ...lines,
+        ];
 
         return {
           content: [
             {
               type: "text" as const,
-              text: `${friends.length} friends for Steam ID ${userId}:\n\n${lines.join("\n")}`,
+              text: sections.join("\n"),
             },
           ],
         };

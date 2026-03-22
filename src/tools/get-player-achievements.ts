@@ -55,19 +55,46 @@ export function registerGetPlayerAchievements(
           };
         }
 
-        const achievements = await fetchPlayerAchievements(
-          apiKey,
-          userId,
-          appid,
-          language
-        );
+        let achievements;
+        try {
+          achievements = await fetchPlayerAchievements(
+            apiKey,
+            userId,
+            appid,
+            language
+          );
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+
+          if (message.startsWith("Could not retrieve achievements.")) {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text:
+                    `Error: Steam did not provide achievement data for app ${appid} ` +
+                    `(Steam ID: ${userId}). The profile may be private, the game ` +
+                    `may not expose achievements, or Steam may be temporarily unavailable.`,
+                },
+              ],
+              isError: true,
+            };
+          }
+
+          throw error;
+        }
 
         if (achievements.length === 0) {
           return {
             content: [
               {
                 type: "text" as const,
-                text: `No achievements found for app ${appid}. The game may have no achievements.`,
+                text:
+                  `No achievement entries were returned for app ${appid} ` +
+                  `(Steam ID: ${userId}). Steam returned an empty dataset, ` +
+                  `so the game may have no achievements or no visible player ` +
+                  `achievement data was available.`,
               },
             ],
           };
@@ -75,17 +102,21 @@ export function registerGetPlayerAchievements(
 
         // Fetch global percentages for enrichment (best-effort)
         const globalMap = new Map<string, number>();
+        let globalPercentagesUnavailable = false;
         try {
           const globals = await fetchGlobalAchievementPercentages(appid);
           for (const g of globals) {
             globalMap.set(g.name, g.percent);
           }
         } catch {
-          // If global percentages fail, continue without them
+          globalPercentagesUnavailable = true;
         }
 
         const unlocked = achievements.filter((a) => a.achieved === 1);
         const locked = achievements.filter((a) => a.achieved === 0);
+        const missingGlobalPercentages = achievements.filter(
+          (achievement) => !globalMap.has(achievement.apiname)
+        ).length;
 
         const formatAchievement = (a: (typeof achievements)[0]) => {
           const status = a.achieved === 1 ? "UNLOCKED" : "LOCKED";
@@ -108,6 +139,23 @@ export function registerGetPlayerAchievements(
           `Progress: ${unlocked.length}/${achievements.length} (${((unlocked.length / achievements.length) * 100).toFixed(1)}%)`,
           "",
         ];
+
+        if (globalPercentagesUnavailable) {
+          lines.push(
+            "Note: Global unlock percentages are temporarily unavailable. Achievement progress is shown without rarity enrichment.",
+            ""
+          );
+        } else if (missingGlobalPercentages === achievements.length) {
+          lines.push(
+            "Note: Steam returned achievement progress, but global unlock percentages were unavailable for all achievements.",
+            ""
+          );
+        } else if (missingGlobalPercentages > 0) {
+          lines.push(
+            `Note: Global unlock percentages were unavailable for ${missingGlobalPercentages} of ${achievements.length} achievements. Those entries are shown without rarity data.`,
+            ""
+          );
+        }
 
         if (unlocked.length > 0) {
           lines.push(`--- Unlocked (${unlocked.length}) ---`);
