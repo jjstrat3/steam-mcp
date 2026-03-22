@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
+  fetchAppList,
   fetchStoreDetails,
   fetchCurrentPlayers,
   fetchNews,
@@ -257,6 +258,118 @@ describe('steam-api', () => {
       await expect(fetchOwnedGames('test-key', '12345')).rejects.toThrow(
         'Failed to fetch owned games: HTTP 403'
       );
+    });
+  });
+
+  describe('fetchAppList', () => {
+    function mockPage(apps: { appid: number; name: string }[], haveMore: boolean, lastAppId?: number) {
+      return {
+        ok: true,
+        json: async () => ({
+          response: {
+            apps,
+            have_more_results: haveMore,
+            last_appid: lastAppId ?? (apps.length > 0 ? apps[apps.length - 1].appid : 0),
+          },
+        }),
+      };
+    }
+
+    it('should collect apps across multiple pages', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce(mockPage([{ appid: 1, name: 'Game A' }, { appid: 2, name: 'Game B' }], true, 2))
+        .mockResolvedValueOnce(mockPage([{ appid: 3, name: 'Game C' }], false, 3));
+
+      const result = await fetchAppList('test-key');
+      expect(result).toEqual([
+        { appid: 1, name: 'Game A' },
+        { appid: 2, name: 'Game B' },
+        { appid: 3, name: 'Game C' },
+      ]);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('should filter out apps with empty names', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce(mockPage([
+          { appid: 1, name: 'Game A' },
+          { appid: 2, name: '' },
+          { appid: 3, name: '   ' },
+        ], false, 3));
+
+      const result = await fetchAppList('test-key');
+      expect(result).toEqual([{ appid: 1, name: 'Game A' }]);
+    });
+
+    it('should stop on empty page', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce(mockPage([{ appid: 1, name: 'Game A' }], true, 1))
+        .mockResolvedValueOnce(mockPage([], false));
+
+      const result = await fetchAppList('test-key');
+      expect(result).toEqual([{ appid: 1, name: 'Game A' }]);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('should throw when last_appid does not advance', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce(mockPage([{ appid: 5, name: 'Game A' }], true, 5))
+        .mockResolvedValueOnce(mockPage([{ appid: 5, name: 'Game A' }], true, 5));
+
+      await expect(fetchAppList('test-key')).rejects.toThrow(
+        /pagination stuck.*last_appid did not advance/i
+      );
+    });
+
+    it('should throw when last_appid goes backwards', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce(mockPage([{ appid: 10, name: 'Game A' }], true, 10))
+        .mockResolvedValueOnce(mockPage([{ appid: 5, name: 'Game B' }], true, 5));
+
+      await expect(fetchAppList('test-key')).rejects.toThrow(
+        /pagination stuck.*last_appid did not advance/i
+      );
+    });
+
+    it('should stop after max page iterations and log warning', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        // Internal cap is 20 pages — mock exactly that many
+        const maxPages = 20;
+        for (let i = 0; i < maxPages; i++) {
+          const appid = (i + 1) * 1000;
+          (global.fetch as ReturnType<typeof vi.fn>)
+            .mockResolvedValueOnce(mockPage([{ appid, name: `Game ${i}` }], true, appid));
+        }
+
+        const result = await fetchAppList('test-key');
+        expect(result).toHaveLength(maxPages);
+        expect(global.fetch).toHaveBeenCalledTimes(maxPages);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          expect.stringContaining('pagination stopped')
+        );
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
+    });
+
+    it('should throw on HTTP error', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+      });
+
+      await expect(fetchAppList('test-key')).rejects.toThrow(
+        'Failed to fetch app list: HTTP 403'
+      );
+    });
+
+    it('should return empty array when first page returns no apps', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce(mockPage([], false));
+
+      const result = await fetchAppList('test-key');
+      expect(result).toEqual([]);
     });
   });
 

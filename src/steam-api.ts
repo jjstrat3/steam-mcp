@@ -138,11 +138,15 @@ export async function fetchWithRetry(
 
 // --- Steam API fetch functions ---
 
+// ~240k apps at 50k/page = ~5 pages; 20 is generous headroom.
+const MAX_APP_LIST_PAGES = 20;
+
 export async function fetchAppList(apiKey: string): Promise<SteamApp[]> {
   const allApps: SteamApp[] = [];
   let lastAppId = 0;
+  let completedNaturally = false;
 
-  while (true) {
+  for (let page = 0; page < MAX_APP_LIST_PAGES; page++) {
     const params = new URLSearchParams({
       key: apiKey,
       max_results: "50000",
@@ -167,15 +171,38 @@ export async function fetchAppList(apiKey: string): Promise<SteamApp[]> {
     const apps = data.response.apps ?? [];
 
     if (apps.length === 0) {
+      completedNaturally = true;
       break;
     }
 
     allApps.push(...apps);
-    lastAppId = data.response.last_appid ?? apps[apps.length - 1].appid;
+    const newLastAppId = data.response.last_appid ?? apps[apps.length - 1].appid;
+
+    if (newLastAppId <= lastAppId) {
+      throw new Error(
+        `App list pagination stuck: last_appid did not advance ` +
+        `(was ${lastAppId}, got ${newLastAppId}) on page ${page + 1}. ` +
+        `Collected ${allApps.length - apps.length} apps before failure.`
+      );
+    }
+    lastAppId = newLastAppId;
 
     if (!data.response.have_more_results) {
+      completedNaturally = true;
       break;
     }
+  }
+
+  if (!completedNaturally && allApps.length > 0) {
+    console.error(
+      `Warning: App list pagination stopped after ${MAX_APP_LIST_PAGES} pages ` +
+      `(last_appid=${lastAppId}, collected ${allApps.length} apps). ` +
+      `Results may be incomplete.`
+    );
+  }
+
+  if (allApps.length === 0) {
+    return [];
   }
 
   return allApps.filter((app) => app.name.trim() !== "");
