@@ -20,6 +20,124 @@ import type {
   NewsResponse,
 } from "./types.js";
 
+// --- Fetch with timeout and bounded retry ---
+
+const DEFAULT_TIMEOUT_MS = 15_000;
+const DEFAULT_MAX_RETRIES = 2;
+const DEFAULT_INITIAL_DELAY_MS = 1_000;
+const MAX_RETRY_AFTER_MS = 30_000;
+const JITTER_MAX_MS = 500;
+
+export interface FetchWithRetryOptions {
+  timeoutMs?: number;
+  maxRetries?: number;
+  initialDelayMs?: number;
+}
+
+function isRetryableStatus(status: number): boolean {
+  return status === 429 || (status >= 500 && status <= 599);
+}
+
+function calculateDelay(attempt: number, initialDelayMs: number): number {
+  const exponential = initialDelayMs * Math.pow(2, attempt);
+  const jitter = Math.random() * JITTER_MAX_MS;
+  return exponential + jitter;
+}
+
+function getRetryAfterMs(res: Response): number | null {
+  const header = res.headers?.get?.("Retry-After");
+  if (!header) return null;
+  const seconds = Number(header);
+  if (isNaN(seconds) || seconds <= 0) return null;
+  return Math.min(seconds * 1000, MAX_RETRY_AFTER_MS);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function fetchWithRetry(
+  url: string | URL,
+  init?: RequestInit,
+  options?: FetchWithRetryOptions,
+): Promise<Response> {
+  const {
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    maxRetries = DEFAULT_MAX_RETRIES,
+    initialDelayMs = DEFAULT_INITIAL_DELAY_MS,
+  } = options ?? {};
+
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(
+      () =>
+        controller.abort(
+          new DOMException(
+            `Request timed out after ${timeoutMs}ms`,
+            "TimeoutError",
+          ),
+        ),
+      timeoutMs,
+    );
+    const signal = init?.signal
+      ? AbortSignal.any([init.signal, controller.signal])
+      : controller.signal;
+
+    try {
+      const res = await fetch(url, {
+        ...init,
+        signal,
+      });
+
+      if (isRetryableStatus(res.status) && attempt < maxRetries) {
+        const retryAfter =
+          res.status === 429 ? getRetryAfterMs(res) : null;
+        const delay =
+          retryAfter ?? calculateDelay(attempt, initialDelayMs);
+        lastError = new Error(`HTTP ${res.status}`);
+        res.body?.cancel().catch(() => {});
+        await sleep(delay);
+        continue;
+      }
+
+      return res;
+    } catch (error) {
+      const isTimeout =
+        error instanceof DOMException && error.name === "TimeoutError";
+      const isNetworkError = error instanceof TypeError;
+
+      if ((isTimeout || isNetworkError) && attempt < maxRetries) {
+        lastError = isTimeout
+          ? new Error(`Request timed out after ${timeoutMs}ms`)
+          : (error as Error);
+        await sleep(calculateDelay(attempt, initialDelayMs));
+        continue;
+      }
+
+      if (isTimeout) {
+        throw new Error(`Request timed out after ${timeoutMs}ms`);
+      }
+
+      if (isNetworkError) {
+        lastError = error;
+        break;
+      }
+
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  throw new Error(
+    `Failed after ${maxRetries + 1} attempts: ${lastError?.message ?? "Unknown error"}`,
+  );
+}
+
+// --- Steam API fetch functions ---
+
 export async function fetchAppList(apiKey: string): Promise<SteamApp[]> {
   const allApps: SteamApp[] = [];
   let lastAppId = 0;
@@ -38,7 +156,7 @@ export async function fetchAppList(apiKey: string): Promise<SteamApp[]> {
       params.set("last_appid", String(lastAppId));
     }
 
-    const res = await fetch(
+    const res = await fetchWithRetry(
       `https://api.steampowered.com/IStoreService/GetAppList/v1/?${params}`
     );
     if (!res.ok) {
@@ -72,7 +190,7 @@ export async function fetchStoreDetails(
   if (cc) params.set("cc", cc);
   if (language) params.set("l", language);
 
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `https://store.steampowered.com/api/appdetails/?${params}`
   );
   if (!res.ok) {
@@ -98,7 +216,7 @@ export async function fetchOwnedGames(
     format: "json",
   });
 
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?${params}`
   );
   if (!res.ok) {
@@ -118,7 +236,7 @@ export async function fetchRecentGames(
     format: "json",
   });
 
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v0001/?${params}`
   );
   if (!res.ok) {
@@ -138,7 +256,7 @@ export async function fetchPlayerSummaries(
     format: "json",
   });
 
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?${params}`
   );
   if (!res.ok) {
@@ -160,7 +278,7 @@ export async function fetchFriendList(
     format: "json",
   });
 
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `https://api.steampowered.com/ISteamUser/GetFriendList/v0001/?${params}`
   );
   if (!res.ok) {
@@ -189,7 +307,7 @@ export async function fetchPlayerAchievements(
   });
   if (language) params.set("l", language);
 
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/?${params}`
   );
   if (!res.ok) {
@@ -212,7 +330,7 @@ export async function fetchGlobalAchievementPercentages(
     format: "json",
   });
 
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?${params}`
   );
   if (!res.ok) {
@@ -232,7 +350,7 @@ export async function fetchCurrentPlayers(
     format: "json",
   });
 
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v0001/?${params}`
   );
   if (!res.ok) {
@@ -254,7 +372,7 @@ export async function fetchNews(
     format: "json",
   });
 
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `https://api.steampowered.com/ISteamNews/GetNewsForApp/v0002/?${params}`
   );
   if (!res.ok) {
