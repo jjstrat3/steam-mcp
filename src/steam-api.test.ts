@@ -6,6 +6,10 @@ import {
   fetchCurrentPlayers,
   fetchNews,
   fetchOwnedGames,
+  fetchRecentGames,
+  fetchPlayerSummaries,
+  fetchFriendList,
+  fetchGlobalAchievementPercentages,
   fetchWithRetry,
   PlayerAchievementsUnavailableError,
 } from './steam-api.js';
@@ -259,6 +263,267 @@ describe('steam-api', () => {
 
       await expect(fetchOwnedGames('test-key', '12345')).rejects.toThrow(
         'Failed to fetch owned games: HTTP 403'
+      );
+    });
+  });
+
+  describe('fetchRecentGames', () => {
+    it('should return recently played games', async () => {
+      const mockResponse = {
+        response: {
+          total_count: 2,
+          games: [
+            { appid: 570, name: 'Dota 2', playtime_forever: 1000, playtime_2weeks: 120 },
+            { appid: 730, name: 'Counter-Strike 2', playtime_forever: 500, playtime_2weeks: 60 },
+          ],
+        },
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await fetchRecentGames('test-key', '12345');
+
+      expect(result).toEqual(mockResponse.response.games);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('GetRecentlyPlayedGames'),
+        expect.objectContaining({ signal: expect.any(Object) }),
+      );
+    });
+
+    it('should return empty array when no recent games', async () => {
+      const mockResponse = {
+        response: {
+          total_count: 0,
+        },
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await fetchRecentGames('test-key', '12345');
+
+      expect(result).toEqual([]);
+    });
+
+    it('should throw on HTTP error', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+      });
+
+      await expect(fetchRecentGames('test-key', '12345')).rejects.toThrow(
+        'Failed to fetch recent games: HTTP 403'
+      );
+    });
+  });
+
+  describe('fetchPlayerSummaries', () => {
+    it('should return player summaries for multiple IDs', async () => {
+      const mockResponse = {
+        response: {
+          players: [
+            {
+              steamid: '111',
+              personaname: 'Player One',
+              profileurl: 'https://steamcommunity.com/id/one/',
+              avatar: 'https://avatar.example.com/1.jpg',
+              personastate: 1,
+            },
+            {
+              steamid: '222',
+              personaname: 'Player Two',
+              profileurl: 'https://steamcommunity.com/id/two/',
+              avatar: 'https://avatar.example.com/2.jpg',
+              personastate: 0,
+            },
+          ],
+        },
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await fetchPlayerSummaries('test-key', ['111', '222']);
+
+      expect(result).toEqual(mockResponse.response.players);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('GetPlayerSummaries'),
+        expect.objectContaining({ signal: expect.any(Object) }),
+      );
+    });
+
+    it('should return empty array when no players found', async () => {
+      const mockResponse = {
+        response: {},
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await fetchPlayerSummaries('test-key', ['111']);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should throw on HTTP error', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+      });
+
+      await expect(fetchPlayerSummaries('test-key', ['111'])).rejects.toThrow(
+        'Failed to fetch player summaries: HTTP 403'
+      );
+    });
+
+    it('should join multiple steam IDs with commas in URL', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ response: { players: [] } }),
+      });
+
+      await fetchPlayerSummaries('test-key', ['aaa', 'bbb', 'ccc']);
+
+      const calledUrl = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
+      const url = new URL(calledUrl);
+      expect(url.searchParams.get('steamids')).toBe('aaa,bbb,ccc');
+    });
+  });
+
+  describe('fetchFriendList', () => {
+    it('should return friend list', async () => {
+      const mockResponse = {
+        friendslist: {
+          friends: [
+            { steamid: '111', relationship: 'friend', friend_since: 1609459200 },
+            { steamid: '222', relationship: 'friend', friend_since: 1612137600 },
+          ],
+        },
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await fetchFriendList('test-key', '12345');
+
+      expect(result).toEqual(mockResponse.friendslist.friends);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('GetFriendList'),
+        expect.objectContaining({ signal: expect.any(Object) }),
+      );
+    });
+
+    it('should return empty array when friendslist is missing', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      const result = await fetchFriendList('test-key', '12345');
+
+      expect(result).toEqual([]);
+    });
+
+    it('should throw privacy error on 401', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+      });
+
+      await expect(fetchFriendList('test-key', '12345')).rejects.toThrow(
+        "This user's friend list is not public. Friend lists are only visible for profiles with public visibility."
+      );
+    });
+
+    it('should throw generic error on non-401 HTTP error', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+      });
+
+      await expect(fetchFriendList('test-key', '12345')).rejects.toThrow(
+        'Failed to fetch friend list: HTTP 403'
+      );
+    });
+
+    it('should use default relationship param and allow override', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ friendslist: { friends: [] } }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ friendslist: { friends: [] } }),
+        });
+
+      // Default call
+      await fetchFriendList('test-key', '12345');
+      const defaultUrl = new URL((global.fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string);
+      expect(defaultUrl.searchParams.get('relationship')).toBe('friend');
+
+      // Custom relationship
+      await fetchFriendList('test-key', '12345', 'all');
+      const customUrl = new URL((global.fetch as ReturnType<typeof vi.fn>).mock.calls[1][0] as string);
+      expect(customUrl.searchParams.get('relationship')).toBe('all');
+    });
+  });
+
+  describe('fetchGlobalAchievementPercentages', () => {
+    it('should return global achievement percentages', async () => {
+      const mockResponse = {
+        achievementpercentages: {
+          achievements: [
+            { name: 'FIRST_WIN', percent: 75.5 },
+            { name: 'COMPLETE_ALL', percent: 2.3 },
+          ],
+        },
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
+      const result = await fetchGlobalAchievementPercentages(570);
+
+      expect(result).toEqual(mockResponse.achievementpercentages.achievements);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('GetGlobalAchievementPercentagesForApp'),
+        expect.objectContaining({ signal: expect.any(Object) }),
+      );
+    });
+
+    it('should return empty array when no achievements available', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      const result = await fetchGlobalAchievementPercentages(570);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should throw on HTTP error', async () => {
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+      });
+
+      await expect(fetchGlobalAchievementPercentages(570)).rejects.toThrow(
+        'Failed to fetch global achievement percentages: HTTP 404'
       );
     });
   });
