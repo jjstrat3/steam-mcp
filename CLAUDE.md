@@ -10,7 +10,7 @@ MCP server providing Steam Web API access to AI assistants.
 - **Transport**: stdio (for Claude Desktop, Docker, MCP Inspector)
 - **Package**: `steam-mcp` v1.0.0
 - **Tools**: 9 registered tools for Steam API access
-- **Tests**: Vitest unit tests for API functions and cache module
+- **Tests**: Vitest unit tests for API functions, cache module, and select tools
 - **Linting**: ESLint with TypeScript plugin
 
 ## Project Structure
@@ -34,10 +34,11 @@ steam-mcp/
 │       ├── get-games.ts
 │       ├── get-recent-games.ts
 │       ├── get-player-summaries.ts
-│       ├── get-friend-list.ts
-│       ├── get-player-achievements.ts
+│       ├── get-friend-list.ts          # + get-friend-list.test.ts
+│       ├── get-player-achievements.ts  # + get-player-achievements.test.ts
 │       ├── get-current-players.ts
 │       └── get-news.ts
+├── .env.example            # Sample environment variables
 ├── Dockerfile              # Multi-stage build (node:22-alpine)
 ├── eslint.config.js        # ESLint 9 flat config for TypeScript
 ├── vitest.config.ts        # Vitest configuration
@@ -129,10 +130,12 @@ async ({ param }) => {
 ### API Fetch Pattern (`steam-api.ts`)
 Each Steam endpoint has a dedicated async function that:
 1. Builds `URLSearchParams` with the required keys
-2. Calls `fetch()` to the Steam API URL
+2. Calls `fetchWithRetry()` — a wrapper with 15s timeout, up to 2 retries with exponential backoff + jitter, and Retry-After header support
 3. Checks `res.ok` and throws on failure (with special 401 handling for friend lists)
 4. Parses JSON with a typed response interface
 5. Returns the inner data with `?? []` fallback for missing arrays
+
+A custom `PlayerAchievementsUnavailableError` is thrown when a game has no achievement stats.
 
 ## Key Implementation Details
 
@@ -145,10 +148,12 @@ Each Steam endpoint has a dedicated async function that:
 
 ### Friend List Enrichment (`get-friend-list.ts`)
 - After fetching the friend list, batch-fetches player summaries in groups of 100 (Steam API limit) to add display names and online status
+- Best-effort: still returns results if enrichment partially fails
 
 ### Achievement Sorting (`get-player-achievements.ts`)
 - Unlocked achievements sorted by most recent unlock time
 - Locked achievements sorted by global unlock percentage (rarest first)
+- Best-effort: returns progress even if global unlock percentage enrichment is unavailable
 
 ## Commands
 

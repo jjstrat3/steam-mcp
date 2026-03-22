@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/sessionStart/gh-setup.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/sessionStart/npm-setup.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
