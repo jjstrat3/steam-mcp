@@ -5,11 +5,17 @@ import type { SteamApp } from "./types.js";
 let appList: SteamApp[] = [];
 let fuseIndex: Fuse<SteamApp> | null = null;
 let lastFetchTime = 0;
+let loadingPromise: Promise<void> | null = null;
 const REFRESH_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
 async function ensureLoaded(): Promise<void> {
   const now = Date.now();
   if (appList.length > 0 && now - lastFetchTime < REFRESH_INTERVAL) {
+    return;
+  }
+
+  if (loadingPromise) {
+    await loadingPromise;
     return;
   }
 
@@ -21,16 +27,27 @@ async function ensureLoaded(): Promise<void> {
     );
   }
 
-  console.error("Fetching Steam app list...");
-  appList = await fetchAppList(apiKey);
-  fuseIndex = new Fuse(appList, {
-    keys: ["name"],
-    threshold: 0.3,
-    distance: 200,
-    minMatchCharLength: 2,
-  });
-  lastFetchTime = now;
-  console.error(`Loaded ${appList.length} apps into search index.`);
+  loadingPromise = (async () => {
+    console.error("Fetching Steam app list...");
+    const nextAppList = await fetchAppList(apiKey);
+    const nextFuseIndex = new Fuse(nextAppList, {
+      keys: ["name"],
+      threshold: 0.3,
+      distance: 200,
+      minMatchCharLength: 2,
+    });
+
+    appList = nextAppList;
+    fuseIndex = nextFuseIndex;
+    lastFetchTime = now;
+    console.error(`Loaded ${appList.length} apps into search index.`);
+  })();
+
+  try {
+    await loadingPromise;
+  } finally {
+    loadingPromise = null;
+  }
 }
 
 export interface SearchResult {
