@@ -5,11 +5,13 @@ import type { PlayerAchievement } from "../types.js";
 vi.mock("../steam-api.js", () => ({
   fetchPlayerAchievements: vi.fn(),
   fetchGlobalAchievementPercentages: vi.fn(),
+  PlayerAchievementsUnavailableError: class PlayerAchievementsUnavailableError extends Error {},
 }));
 
 import {
   fetchGlobalAchievementPercentages,
   fetchPlayerAchievements,
+  PlayerAchievementsUnavailableError,
 } from "../steam-api.js";
 import { registerGetPlayerAchievements } from "./get-player-achievements.js";
 
@@ -83,9 +85,7 @@ describe("get-player-achievements tool", () => {
 
   it("returns a clearer MCP-friendly error when Steam does not provide achievement data", async () => {
     vi.mocked(fetchPlayerAchievements).mockRejectedValueOnce(
-      new Error(
-        "Could not retrieve achievements. The game may have no achievements, or the user's profile may be private."
-      )
+      new PlayerAchievementsUnavailableError()
     );
 
     const handler = getHandler();

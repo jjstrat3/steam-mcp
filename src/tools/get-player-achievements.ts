@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   fetchPlayerAchievements,
   fetchGlobalAchievementPercentages,
+  PlayerAchievementsUnavailableError,
 } from "../steam-api.js";
 
 export function registerGetPlayerAchievements(
@@ -55,7 +56,7 @@ export function registerGetPlayerAchievements(
           };
         }
 
-        let achievements;
+        let achievements: Awaited<ReturnType<typeof fetchPlayerAchievements>>;
         try {
           achievements = await fetchPlayerAchievements(
             apiKey,
@@ -64,10 +65,7 @@ export function registerGetPlayerAchievements(
             language
           );
         } catch (error) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-
-          if (message.startsWith("Could not retrieve achievements.")) {
+          if (error instanceof PlayerAchievementsUnavailableError) {
             return {
               content: [
                 {

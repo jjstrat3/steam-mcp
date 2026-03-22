@@ -320,6 +320,15 @@ export async function fetchFriendList(
   return data.friendslist?.friends ?? [];
 }
 
+export class PlayerAchievementsUnavailableError extends Error {
+  constructor() {
+    super(
+      "Could not retrieve achievements. The game may have no achievements, or the user's profile may be private."
+    );
+    this.name = "PlayerAchievementsUnavailableError";
+  }
+}
+
 export async function fetchPlayerAchievements(
   apiKey: string,
   steamId: string,
@@ -342,9 +351,7 @@ export async function fetchPlayerAchievements(
   }
   const data = (await res.json()) as PlayerAchievementsResponse;
   if (!data.playerstats?.success) {
-    throw new Error(
-      "Could not retrieve achievements. The game may have no achievements, or the user's profile may be private."
-    );
+    throw new PlayerAchievementsUnavailableError();
   }
   return data.playerstats.achievements ?? [];
 }
