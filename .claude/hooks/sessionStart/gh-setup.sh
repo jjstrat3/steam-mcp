@@ -27,21 +27,27 @@ ARCH=$(uname -m)
 case "$ARCH" in
   x86_64)  ARCH="amd64" ;;
   aarch64) ARCH="arm64" ;;
+  *)
+    echo "Unsupported architecture: $ARCH" >&2
+    exit 1
+    ;;
 esac
 
 TARBALL="gh_${GH_VERSION}_linux_${ARCH}.tar.gz"
 URL="https://github.com/cli/cli/releases/download/v${GH_VERSION}/${TARBALL}"
 
 echo "Installing gh ${GH_VERSION} (${ARCH})..."
-curl -sL "$URL" -o "/tmp/${TARBALL}"
+if ! curl -fsSL "$URL" -o "/tmp/${TARBALL}"; then
+  echo "Failed to download gh from $URL" >&2
+  exit 1
+fi
 tar -xzf "/tmp/${TARBALL}" -C /tmp
 cp "/tmp/gh_${GH_VERSION}_linux_${ARCH}/bin/gh" "$INSTALL_DIR/gh"
 chmod +x "$INSTALL_DIR/gh"
 rm -rf "/tmp/${TARBALL}" "/tmp/gh_${GH_VERSION}_linux_${ARCH}"
 
 # Make gh available for the rest of this session
-export PATH="$INSTALL_DIR:$PATH"
-if [ -n "$CLAUDE_ENV_FILE" ]; then
+if [ -n "$CLAUDE_ENV_FILE" ] && ! grep -q "$INSTALL_DIR" "$CLAUDE_ENV_FILE" 2>/dev/null; then
   echo "PATH=$INSTALL_DIR:\$PATH" >> "$CLAUDE_ENV_FILE"
 fi
 

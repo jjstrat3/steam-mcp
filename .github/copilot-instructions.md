@@ -27,9 +27,9 @@ If `build/` already exists, `npm test` can also discover compiled `build/*.test.
 This repository is a stdio-based MCP server for the Steam Web API using ESM TypeScript. CI and the Dockerfile currently use Node 22, but `package.json` does not declare an `engines` requirement, so do not assume Node 22 is a hard runtime constraint unless the repo is updated to enforce one.
 
 - `src/index.ts` is the thin entry point. It reads `TOOL_PREFIX`, creates the `McpServer`, registers every tool, and connects the stdio transport.
-- `src/tools/*.ts` contains the MCP-facing tool handlers. Each tool defines its own Zod input schema, validates required environment variables, resolves `STEAM_USER_ID` fallbacks, calls shared fetch helpers, and formats the final text response returned to the MCP client.
+- `src/tools/*.ts` contains the MCP-facing tool handlers. Most tools define their own Zod input schema, validate required environment variables, resolve `STEAM_USER_ID` fallbacks, call shared fetch helpers, and format the final text response returned to the MCP client.
 - `src/steam-api.ts` is the shared Steam API layer. Keep raw HTTP access here instead of inside tool files. It owns retry/timeout behavior (`fetchWithRetry`), endpoint-specific URL construction, response parsing, and Steam-specific error cases such as private friend lists and unavailable achievement data.
-- `src/cache.ts` is the stateful search layer used by `search-apps`. It lazily fetches the full Steam app catalog, builds a Fuse.js index once, deduplicates concurrent first-load requests with a shared promise, and refreshes the cache every 24 hours.
+- `src/cache.ts` is the stateful search layer used by `search-apps`. It lazily fetches the full Steam app catalog, builds a Fuse.js index once, deduplicates concurrent first-load requests with a shared promise, and refreshes the cache every 24 hours. For `search-apps`, `cache.ts` owns `STEAM_API_KEY` validation and error surfacing instead of the tool handler performing its own check.
 
 When adding a tool, the normal change surface is:
 
