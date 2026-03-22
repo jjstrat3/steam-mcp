@@ -5,7 +5,7 @@ MCP server providing Steam Web API access to AI assistants.
 ## Project Overview
 
 - **Type**: Model Context Protocol (MCP) server
-- **Runtime**: Node.js 22+ with ES modules
+- **Runtime**: Node.js with ES modules (CI and Docker currently use Node 22, but `package.json` does not declare an `engines` requirement)
 - **Language**: TypeScript (ES2022 target, strict mode)
 - **Transport**: stdio (for Claude Desktop, Docker, MCP Inspector)
 - **Package**: `steam-mcp` v1.0.0
@@ -68,9 +68,9 @@ steam-mcp/
 | `get-store-details` | No | Pricing, descriptions, screenshots, system requirements, reviews |
 | `get-games` | Yes | All games owned by a user, sorted by playtime |
 | `get-recent-games` | Yes | Games played in the last 2 weeks with playtime |
-| `get-player-summaries` | Yes | Profile info, online status, avatar, currently playing (up to 100 IDs) |
-| `get-friend-list` | Yes | Friend list with display names, enriched via batched player summaries |
-| `get-player-achievements` | Yes | Achievement progress with global unlock percentages, sorted by recency/rarity |
+| `get-player-summaries` | Yes | Profile info, online status, avatar, currently playing, and privacy-aware summary output (up to 100 IDs) |
+| `get-friend-list` | Yes | Friend list with display names when enrichment succeeds; public profiles only |
+| `get-player-achievements` | Yes | Achievement progress with global unlock percentages, with unlocked entries sorted by recency |
 | `get-current-players` | No | Current in-game player count |
 | `get-news` | No | Latest news articles and patch notes (configurable count 1–50) |
 
@@ -109,16 +109,11 @@ All register functions are imported and called in `src/index.ts` with the `TOOL_
 ```typescript
 async ({ param }) => {
   try {
-    // 1. Validate env vars first (STEAM_API_KEY)
-    const apiKey = process.env.STEAM_API_KEY;
-    if (!apiKey) {
-      return { content: [{ type: "text" as const, text: "Error: ..." }], isError: true };
-    }
-
-    // 2. Validate parameters (resolve STEAM_USER_ID fallback)
-    // 3. Call API via steam-api.ts fetch function
-    // 4. Handle empty results gracefully (not an error)
-    // 5. Return formatted text response
+    // 1. Validate required env vars for auth-required tools
+    // 2. Resolve parameters (including STEAM_USER_ID fallback where relevant)
+    // 3. Call shared steam-api.ts fetch helpers
+    // 4. Treat empty Steam results as readable success responses where appropriate
+    // 5. Return MCP text payload
     return { content: [{ type: "text" as const, text: result }] };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -130,12 +125,13 @@ async ({ param }) => {
 ### API Fetch Pattern (`steam-api.ts`)
 Each Steam endpoint has a dedicated async function that:
 1. Builds `URLSearchParams` with the required keys
-2. Calls `fetchWithRetry()` — a wrapper with 15s timeout, up to 2 retries with exponential backoff + jitter, and Retry-After header support
-3. Checks `res.ok` and throws on failure (with special 401 handling for friend lists)
-4. Parses JSON with a typed response interface
-5. Returns the inner data with `?? []` fallback for missing arrays
+2. Calls `fetchWithRetry()` — a wrapper with a 15s per-attempt timeout, up to 2 retries, exponential backoff (`1000ms * 2^attempt`) plus `0-500ms` jitter, and `Retry-After` support for 429s (capped at 30s)
+3. Retries only on 429, 5xx, timeouts, and transient network failures; other 4xx responses are returned immediately
+4. Checks `res.ok` and throws on failure; friend-list 401s become a user-facing "friend list is not public" error
+5. Parses JSON with a typed response interface
+6. Returns the inner data with `?? []` fallback for missing arrays
 
-A custom `PlayerAchievementsUnavailableError` is thrown when a game has no achievement stats.
+A custom `PlayerAchievementsUnavailableError` is thrown when Steam returns a non-success achievements payload. The tool layer converts that into a user-facing error covering private profiles, games without achievements, and temporary Steam-side unavailability.
 
 ## Key Implementation Details
 
@@ -147,13 +143,14 @@ A custom `PlayerAchievementsUnavailableError` is thrown when a game has no achie
 - Scores normalized to 0–1 (higher = better match)
 
 ### Friend List Enrichment (`get-friend-list.ts`)
-- After fetching the friend list, batch-fetches player summaries in groups of 100 (Steam API limit) to add display names and online status
-- Best-effort: still returns results if enrichment partially fails
+- After fetching the friend list, batch-fetches player summaries in groups of 100 (Steam API limit) to add display names
+- Best-effort: the tool still returns Steam IDs and friend-since dates if summary enrichment partially or fully fails
+- Missing enriched names are rendered as `Unknown`, and the response includes a notice explaining whether enrichment was partial or unavailable
 
 ### Achievement Sorting (`get-player-achievements.ts`)
-- Unlocked achievements sorted by most recent unlock time
-- Locked achievements sorted by global unlock percentage (rarest first)
-- Best-effort: returns progress even if global unlock percentage enrichment is unavailable
+- Unlocked achievements are sorted by most recent unlock time first
+- Locked achievements are sorted by global unlock percentage descending (most common/easiest first)
+- Best-effort: progress is still returned if global unlock percentage enrichment is unavailable, with a notice describing whether rarity data is fully or partially missing
 
 ## Commands
 
