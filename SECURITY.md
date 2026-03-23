@@ -3,8 +3,8 @@
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability in this project, please report it
-responsibly by emailing the maintainer directly rather than opening a public
-issue.
+responsibly by opening a private security advisory on GitHub rather than
+creating a public issue.
 
 **Contact:** Open a [private security advisory](https://github.com/jjstrat3/steam-mcp/security/advisories/new) on this repository.
 
