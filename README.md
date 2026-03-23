@@ -41,11 +41,9 @@ Your 64-bit Steam ID is the number in your Steam profile URL (e.g., `https://ste
 
 | Variable | Required | Description |
 |---|---|---|
-| `STEAM_API_KEY` | No* | Steam Web API key (required for `search-apps`, `get-games`, `get-recent-games`, `get-player-summaries`, `get-friend-list`, and `get-player-achievements`) |
+| `STEAM_API_KEY` | Some tools | Steam Web API key (required for `search-apps`, `get-games`, `get-recent-games`, `get-player-summaries`, `get-friend-list`, and `get-player-achievements`; optional for `get-store-details`, `get-current-players`, and `get-news`) |
 | `STEAM_USER_ID` | No | Default 64-bit Steam ID (can be overridden per-call) |
 | `TOOL_PREFIX` | No | Prefix for tool names (e.g., `steam_` makes `steam_search-apps`) |
-
-*Optional if you only use `get-store-details`, `get-current-players`, or `get-news`.
 
 ## Usage
 
