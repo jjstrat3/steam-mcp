@@ -67,11 +67,18 @@ jobs:
           git commit -m "chore: release ${{ steps.version.outputs.tag }}"
           git tag "${{ steps.version.outputs.tag }}"
 
-      - name: Push release commit and tag
+      - name: Push release commit
+        shell: bash
+        run: git push origin HEAD:${{ github.event.repository.default_branch }}
+
+      - name: Push release tag
         id: push
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git push origin HEAD:${{ github.event.repository.default_branch }}
+          git config --unset-all http.https://github.com/.extraheader
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
           git push origin "${{ steps.version.outputs.tag }}"
           echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
