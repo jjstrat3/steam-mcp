@@ -226,6 +226,8 @@ describe("workflow: get-games → get-player-achievements", () => {
     const text = gamesResult.content[0].text;
     const dotaIdx = text.indexOf("Dota 2");
     const tf2Idx = text.indexOf("Team Fortress 2");
+    expect(dotaIdx).toBeGreaterThanOrEqual(0);
+    expect(tf2Idx).toBeGreaterThanOrEqual(0);
     expect(dotaIdx).toBeLessThan(tf2Idx);
     expect(text).toContain("appid: 570");
     expect(text).toContain("appid: 440");
