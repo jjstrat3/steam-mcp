@@ -14,12 +14,16 @@ Add a new `get-playtime-analytics` MCP tool that returns a comprehensive playtim
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `steam_id` | string | No | `STEAM_USER_ID` env var | 64-bit Steam ID |
-| `limit` | number (1-50) | No | 10 | Max games per category |
+| `steamid` | `z.string().optional().describe("64-bit Steam ID (defaults to STEAM_USER_ID env var)")` | No | `STEAM_USER_ID` env var | 64-bit Steam ID |
+| `limit` | `z.number().min(1).max(50).optional().describe("Max games shown per category (1-50, default 10)")` | No | 10 | Max games per category |
 
 ### Auth
 
 Requires `STEAM_API_KEY`.
+
+### MCP Tool Description
+
+"Summarize a Steam user's library playtime into categories: recently played, most played, least played, and never played"
 
 ### Data Source
 
@@ -27,14 +31,16 @@ Reuses `fetchOwnedGames()` from `steam-api.ts`. No new Steam API endpoints neede
 
 ### Output Categories
 
-Output is plain text organized into sections, preceded by a summary header (total games owned, total playtime). Categories appear in this order:
+Output is plain text organized into sections, preceded by a summary header (total games owned, total playtime in hours formatted to one decimal place). Categories appear in this order:
 
 1. **Recently Played** -- Games with `playtime_2weeks > 0`, sorted by 2-week playtime descending.
 2. **Most Played** -- Top N by `playtime_forever`, sorted descending.
 3. **Least Played** -- Games with `playtime_forever > 0` and under 120 minutes total, sorted ascending. The 120-minute threshold aligns with Steam's refund window.
 4. **Never Played** -- Games with `playtime_forever === 0`, sorted alphabetically.
 
-Each entry shows: game name, total hours, and 2-week hours where applicable. Categories with no matching games are omitted from output.
+Each entry shows: game name, total hours, and 2-week hours where applicable. Categories with no matching games are omitted from output. Games may appear in multiple categories (e.g., a top most-played game that was also played recently appears in both "Recently Played" and "Most Played") since each category answers a different question.
+
+The 120-minute threshold for "Least Played" should be extracted as a named constant (e.g., `LEAST_PLAYED_THRESHOLD_MINUTES = 120`).
 
 ### Error Handling
 
@@ -83,6 +89,6 @@ Tests follow existing tool test patterns: mock `fetchOwnedGames` from `steam-api
 |-----------|-------------|
 | Happy path | Library with mixed playtime games; all four categories populate and sort correctly |
 | Empty library | Zero games owned; returns readable message, not an error |
-| All never-played | Only "Never Played" section appears |
+| All never-played | Only "Never Played" section appears; assert other category headers are absent |
 | Single game | Lands in the correct category |
 | Limit parameter | Each category respects the limit cap |
