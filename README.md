@@ -10,9 +10,9 @@ MCP server for the Steam Web API. Provides tools for searching Steam games, fetc
 | `get-store-details` | Pricing, descriptions, screenshots, system requirements | No |
 | `get-games` | All games owned by a Steam user | Yes |
 | `get-recent-games` | Games played in the last 2 weeks | Yes |
-| `get-player-summaries` | Profile info, online status, avatar, currently playing | Yes |
-| `get-friend-list` | Friend list with display names and friend-since dates | Yes |
-| `get-player-achievements` | Achievement progress with global unlock percentages | Yes |
+| `get-player-summaries` | Profile info, online status, avatar, and currently playing game (up to 100 IDs) | Yes |
+| `get-friend-list` | Friend list with display names, Steam IDs, and friend-since dates (public profiles only) | Yes |
+| `get-player-achievements` | Achievement progress with unlock times and global unlock percentages | Yes |
 | `get-current-players` | Current number of in-game players | No |
 | `get-news` | Latest news articles and patch notes | No |
 
@@ -41,7 +41,7 @@ Your 64-bit Steam ID is the number in your Steam profile URL (e.g., `https://ste
 
 | Variable | Required | Description |
 |---|---|---|
-| `STEAM_API_KEY` | Yes | Steam Web API key (required for `search-apps`, `get-games`, and `get-recent-games`) |
+| `STEAM_API_KEY` | Some tools | Steam Web API key (required for `search-apps`, `get-games`, `get-recent-games`, `get-player-summaries`, `get-friend-list`, and `get-player-achievements`; optional for `get-store-details`, `get-current-players`, and `get-news`) |
 | `STEAM_USER_ID` | No | Default 64-bit Steam ID (can be overridden per-call) |
 | `TOOL_PREFIX` | No | Prefix for tool names (e.g., `steam_` makes `steam_search-apps`) |
 
@@ -110,6 +110,12 @@ npm run build
 npx @modelcontextprotocol/inspector build/index.js
 ```
 
+## Behavior Notes
+
+- `get-player-summaries` accepts up to 100 Steam IDs. Private profiles return a reduced field set instead of full profile details.
+- `get-friend-list` only works for public profiles. If display-name enrichment fails, the tool still returns Steam IDs and friend-since dates with a notice.
+- `get-player-achievements` still returns achievement progress when global unlock percentages are unavailable and notes when rarity enrichment is missing.
+
 ## Example Queries
 
 - "Find the app ID for Stardew Valley" → `search-apps`
@@ -121,6 +127,6 @@ npx @modelcontextprotocol/inspector build/index.js
 - "Is my friend online right now?" → `get-player-summaries`
 - "Who are my Steam friends?" → `get-friend-list`
 - "What achievements have I unlocked in Elden Ring?" → `search-apps` + `get-player-achievements`
-- "What are the rarest achievements I've earned in Hollow Knight?" → `search-apps` + `get-player-achievements`
+- "Show my achievement progress in Hollow Knight" → `search-apps` + `get-player-achievements`
 - "How many people are playing CS2 right now?" → `search-apps` + `get-current-players`
 - "What's the latest news for Factorio?" → `search-apps` + `get-news`
