@@ -110,6 +110,12 @@ npm run build
 npx @modelcontextprotocol/inspector build/index.js
 ```
 
+## Releasing
+
+Use the `Create Release` GitHub Actions workflow with a `patch`, `minor`, or `major` bump when you want a one-click release from the default branch. The workflow updates `package.json` and `package-lock.json`, creates the matching `v*` tag, publishes the Docker image tags, and creates the GitHub Release.
+
+Manual `v*` tag pushes still create a GitHub Release as before.
+
 ## Behavior Notes
 
 - `get-player-summaries` accepts up to 100 Steam IDs. Private profiles return a reduced field set instead of full profile details.

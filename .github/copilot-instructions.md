@@ -24,7 +24,7 @@ If `build/` already exists, `npm test` can also discover compiled `build/*.test.
 
 ## High-level architecture
 
-This repository is a stdio-based MCP server for the Steam Web API using ESM TypeScript. CI and the Dockerfile currently use Node 22, but `package.json` does not declare an `engines` requirement, so do not assume Node 22 is a hard runtime constraint unless the repo is updated to enforce one.
+This repository is a stdio-based MCP server for the Steam Web API using ESM TypeScript. CI and the Dockerfile currently use Node 24, but `package.json` does not declare an `engines` requirement, so do not assume Node 24 is a hard runtime constraint unless the repo is updated to enforce one.
 
 - `src/index.ts` is the thin entry point. It reads `TOOL_PREFIX`, creates the `McpServer`, registers every tool, and connects the stdio transport.
 - `src/tools/*.ts` contains the MCP-facing tool handlers. Most tools define their own Zod input schema, validate required environment variables, resolve `STEAM_USER_ID` fallbacks, call shared fetch helpers, and format the final text response returned to the MCP client.
