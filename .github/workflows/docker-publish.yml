@@ -4,6 +4,25 @@ on:
   push:
     branches: [main, master]
     tags: ['v*']
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref to build and publish
+        required: true
+        type: string
+      version:
+        description: Semver version without the leading v
+        required: true
+        type: string
+      default_branch:
+        description: Default branch name for branch/latest tags
+        required: true
+        type: string
+      publish_latest:
+        description: Also publish default-branch and latest tags
+        required: false
+        type: boolean
+        default: false
 
 env:
   REGISTRY: ghcr.io
@@ -19,6 +38,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_call' && inputs.ref || github.ref }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -31,6 +52,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels)
+        if: github.event_name == 'push'
         id: meta
         uses: docker/metadata-action@v6
         with:
@@ -42,7 +64,32 @@ jobs:
             type=semver,pattern={{major}}
             type=raw,value=latest,enable={{is_default_branch}}
 
+      - name: Derive manual release tags
+        if: github.event_name == 'workflow_call'
+        id: release-tags
+        shell: bash
+        run: |
+          version='${{ inputs.version }}'
+          IFS='.' read -r major minor patch <<< "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "major_minor=$major.$minor" >> "$GITHUB_OUTPUT"
+          echo "major=$major" >> "$GITHUB_OUTPUT"
+
+      - name: Extract manual release metadata
+        if: github.event_name == 'workflow_call'
+        id: manual-meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ steps.release-tags.outputs.version }}
+            type=raw,value=${{ steps.release-tags.outputs.major_minor }}
+            type=raw,value=${{ steps.release-tags.outputs.major }}
+            type=raw,value=${{ inputs.default_branch }},enable=${{ inputs.publish_latest }}
+            type=raw,value=latest,enable=${{ inputs.publish_latest }}
+
       - name: Build and push Docker image
+        if: github.event_name == 'push'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -50,5 +97,17 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push manual release image
+        if: github.event_name == 'workflow_call'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.manual-meta.outputs.tags }}
+          labels: ${{ steps.manual-meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

@@ -5,7 +5,7 @@ MCP server providing Steam Web API access to AI assistants.
 ## Project Overview
 
 - **Type**: Model Context Protocol (MCP) server
-- **Runtime**: Node.js with ES modules (CI and Docker currently use Node 22, but `package.json` does not declare an `engines` requirement)
+- **Runtime**: Node.js with ES modules (CI and Docker currently use Node 24, but `package.json` does not declare an `engines` requirement)
 - **Language**: TypeScript (ES2022 target, strict mode)
 - **Transport**: stdio (for Claude Desktop, Docker, MCP Inspector)
 - **Package**: `steam-mcp` v1.0.0
@@ -20,7 +20,7 @@ steam-mcp/
 ├── .github/workflows/
 │   ├── ci.yml              # PR quality gates (lint, test, build, docker)
 │   ├── docker-publish.yml  # Multi-platform Docker image → GHCR
-│   └── release.yml         # GitHub Release on v* tags
+│   └── release.yml         # GitHub Release on v* tags or manual workflow dispatch
 ├── src/
 │   ├── index.ts            # Server init, tool registration, stdio transport
 │   ├── steam-api.ts        # Fetch wrappers for all Steam API endpoints
@@ -39,7 +39,7 @@ steam-mcp/
 │       ├── get-current-players.ts
 │       └── get-news.ts
 ├── .env.example            # Sample environment variables
-├── Dockerfile              # Multi-stage build (node:22-alpine)
+├── Dockerfile              # Multi-stage build (node:24-alpine)
 ├── eslint.config.js        # ESLint 9 flat config for TypeScript
 ├── vitest.config.ts        # Vitest configuration
 ├── package.json
@@ -169,7 +169,7 @@ A custom `PlayerAchievementsUnavailableError` is thrown when Steam returns a non
 
 ## Docker
 
-Multi-stage build using `node:22-alpine`. Builder stage compiles TypeScript; runtime stage copies only `build/` and production dependencies.
+Multi-stage build using `node:24-alpine`. Builder stage compiles TypeScript; runtime stage copies only `build/` and production dependencies.
 
 ```bash
 # Build locally
@@ -212,8 +212,8 @@ docker run -i -e STEAM_API_KEY=xxx -e STEAM_USER_ID=xxx ghcr.io/jjstrat3/steam-m
 - **Tags**: branch name, semver patterns, `latest` on default branch
 
 ### Release (`.github/workflows/release.yml`)
-- **Triggers**: push of v* tags
-- Creates a GitHub Release with auto-generated release notes and Docker pull instructions
+- **Triggers**: push of v* tags and manual workflow dispatch
+- Manual dispatch bumps `package.json`/`package-lock.json`, creates and pushes the matching `v*` tag, publishes Docker images, and creates the GitHub Release in one run
 
 ## Adding a New Tool
 

@@ -3,16 +3,125 @@ name: Create Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Semantic version bump to release
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
-  release:
+  prepare-release:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      commit_sha: ${{ steps.push.outputs.commit_sha }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Ensure workflow runs from the default branch
+        shell: bash
+        run: |
+          if [ "${{ github.ref_name }}" != "${{ github.event.repository.default_branch }}" ]; then
+            echo "This workflow must be dispatched from ${{ github.event.repository.default_branch }}."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump package version
+        id: version
+        shell: bash
+        run: |
+          tag="$(npm version ${{ inputs.bump }} --no-git-tag-version)"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Commit release version and tag
+        shell: bash
+        run: |
+          git add package.json package-lock.json
+          git commit -m "chore: release ${{ steps.version.outputs.tag }}"
+          git tag "${{ steps.version.outputs.tag }}"
+
+      - name: Push release commit and tag
+        id: push
+        shell: bash
+        run: |
+          git push origin HEAD:${{ github.event.repository.default_branch }}
+          git push origin "${{ steps.version.outputs.tag }}"
+          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  publish-release-image:
+    if: github.event_name == 'workflow_dispatch'
+    needs: prepare-release
+    uses: ./.github/workflows/docker-publish.yml
+    with:
+      ref: refs/tags/${{ needs.prepare-release.outputs.tag }}
+      version: ${{ needs.prepare-release.outputs.version }}
+      default_branch: ${{ github.event.repository.default_branch }}
+      publish_latest: true
+
+  release-dispatch:
+    if: github.event_name == 'workflow_dispatch'
+    needs: [prepare-release, publish-release-image]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare-release.outputs.tag }}
+          target_commitish: ${{ needs.prepare-release.outputs.commit_sha }}
+          generate_release_notes: true
+          body: |
+            ## Docker Image
+
+            Pull the image from GitHub Container Registry:
+
+            ```bash
+            docker pull ghcr.io/${{ github.repository }}:${{ needs.prepare-release.outputs.version }}
+            ```
+
+            Or use the `latest` tag:
+
+            ```bash
+            docker pull ghcr.io/${{ github.repository }}:latest
+            ```
+
+  release-tag-push:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: ${{ github.ref_name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Derive Docker image tag
+        shell: bash
+        run: echo "RELEASE_VERSION=${RELEASE_VERSION#v}" >> "$GITHUB_ENV"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -24,7 +133,7 @@ jobs:
             Pull the image from GitHub Container Registry:
 
             ```bash
-            docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            docker pull ghcr.io/${{ github.repository }}:${{ env.RELEASE_VERSION }}
             ```
 
             Or use the `latest` tag:
