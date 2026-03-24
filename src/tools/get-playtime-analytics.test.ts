@@ -14,13 +14,15 @@ interface ToolResponse {
   isError?: boolean;
 }
 
+let nextAppId = 1;
+
 function createGame(
   name: string,
   playtimeForever: number,
   playtime2weeks?: number
 ): OwnedGame {
   return {
-    appid: Math.floor(Math.random() * 100000),
+    appid: nextAppId++,
     name,
     playtime_forever: playtimeForever,
     ...(playtime2weeks !== undefined && { playtime_2weeks: playtime2weeks }),
@@ -41,6 +43,7 @@ function getHandler(): (
 describe("get-playtime-analytics tool", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    nextAppId = 1;
     process.env.STEAM_API_KEY = "test-key";
     delete process.env.STEAM_USER_ID;
   });

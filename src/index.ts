@@ -1,5 +1,9 @@
+import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+
+const require = createRequire(import.meta.url);
+const { version } = require("../package.json") as { version: string };
 import { registerSearchApps } from "./tools/search-apps.js";
 import { registerGetStoreDetails } from "./tools/get-store-details.js";
 import { registerGetGames } from "./tools/get-games.js";
@@ -15,7 +19,7 @@ const prefix = process.env.TOOL_PREFIX ?? "";
 
 const server = new McpServer({
   name: "steam-mcp",
-  version: "1.0.0",
+  version,
 });
 
 registerSearchApps(server, prefix);
