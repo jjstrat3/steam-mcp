@@ -9,6 +9,7 @@ import { registerGetFriendList } from "./tools/get-friend-list.js";
 import { registerGetPlayerAchievements } from "./tools/get-player-achievements.js";
 import { registerGetCurrentPlayers } from "./tools/get-current-players.js";
 import { registerGetNews } from "./tools/get-news.js";
+import { registerGetPlaytimeAnalytics } from "./tools/get-playtime-analytics.js";
 
 const prefix = process.env.TOOL_PREFIX ?? "";
 
@@ -26,6 +27,7 @@ registerGetFriendList(server, prefix);
 registerGetPlayerAchievements(server, prefix);
 registerGetCurrentPlayers(server, prefix);
 registerGetNews(server, prefix);
+registerGetPlaytimeAnalytics(server, prefix);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
