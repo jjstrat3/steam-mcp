@@ -85,7 +85,7 @@ describe("get-playtime-analytics tool", () => {
 
     // Summary header
     expect(text).toContain("6 games owned");
-    expect(text).toContain("1050.0 hours"); // (60000+3000+30+10)/60 = 1050.67 — total
+    expect(text).toContain("1050.7 hours"); // (60000+3000+30+10)/60 = 1050.667 → toFixed(1) = "1050.7"
 
     // All four category headers present
     expect(text).toContain("Recently Played");
@@ -499,7 +499,7 @@ In the `src/tools/` section of the project structure, add:
 │       ├── get-playtime-analytics.ts   # + get-playtime-analytics.test.ts
 ```
 
-Insert it alphabetically among the tool files (after `get-player-summaries.ts`, before `get-current-players.ts`).
+Insert it at the end of the tools list (after `get-news.ts`) to match the registration order in `index.ts`. Change the existing `└── get-news.ts` to `├── get-news.ts` and add the new entry as `└── get-playtime-analytics.ts  # + get-playtime-analytics.test.ts`.
 
 - [ ] **Step 3: Add to tools table**
 
