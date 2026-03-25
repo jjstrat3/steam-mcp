@@ -77,6 +77,8 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          labels: |
+            org.opencontainers.image.description=MCP server providing Steam Web API access to AI assistants
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
@@ -101,6 +103,8 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          labels: |
+            org.opencontainers.image.description=MCP server providing Steam Web API access to AI assistants
           tags: |
             type=raw,value=${{ steps.release-tags.outputs.version }}
             type=raw,value=${{ steps.release-tags.outputs.major_minor }}
