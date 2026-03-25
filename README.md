@@ -8,6 +8,7 @@ MCP server for the Steam Web API. Provides tools for searching Steam games, fetc
 |------|-------------|---------------|
 | `search-apps` | Fuzzy search Steam apps by name | Yes |
 | `get-store-details` | Pricing, descriptions, screenshots, system requirements | No |
+| `compare-regional-prices` | Compare Steam pricing across explicit country codes with currency-safe summaries | No |
 | `get-games` | All games owned by a Steam user | Yes |
 | `get-recent-games` | Games played in the last 2 weeks | Yes |
 | `get-player-summaries` | Profile info, online status, avatar, and currently playing game (up to 100 IDs) | Yes |
@@ -42,7 +43,7 @@ Your 64-bit Steam ID is the number in your Steam profile URL (e.g., `https://ste
 
 | Variable | Required | Description |
 |---|---|---|
-| `STEAM_API_KEY` | Some tools | Steam Web API key (required for `search-apps`, `get-games`, `get-recent-games`, `get-player-summaries`, `get-friend-list`, `get-player-achievements`, and `get-playtime-analytics`; optional for `get-store-details`, `get-current-players`, and `get-news`) |
+| `STEAM_API_KEY` | Some tools | Steam Web API key (required for `search-apps`, `get-games`, `get-recent-games`, `get-player-summaries`, `get-friend-list`, `get-player-achievements`, and `get-playtime-analytics`; optional for `get-store-details`, `compare-regional-prices`, `get-current-players`, and `get-news`) |
 | `STEAM_USER_ID` | No | Default 64-bit Steam ID (can be overridden per-call) |
 | `TOOL_PREFIX` | No | Prefix for tool names (e.g., `steam_` makes `steam_search-apps`) |
 
@@ -119,6 +120,7 @@ Manual `v*` tag pushes still create a GitHub Release as before.
 
 ## Behavior Notes
 
+- `compare-regional-prices` requires an explicit list of 2-10 country codes and only computes comparison deltas when regions share the same currency.
 - `get-player-summaries` accepts up to 100 Steam IDs. Private profiles return a reduced field set instead of full profile details.
 - `get-friend-list` only works for public profiles. If display-name enrichment fails, the tool still returns Steam IDs and friend-since dates with a notice.
 - `get-player-achievements` still returns achievement progress when global unlock percentages are unavailable and notes when rarity enrichment is missing.
@@ -127,6 +129,7 @@ Manual `v*` tag pushes still create a GitHub Release as before.
 
 - "Find the app ID for Stardew Valley" → `search-apps`
 - "What's the price for Baldur's Gate 3?" → `search-apps` + `get-store-details`
+- "Compare Hades pricing in the US, CA, and GB" → `compare-regional-prices`
 - "Show me system requirements for Cyberpunk 2077" → `search-apps` + `get-store-details`
 - "What games have I been playing recently?" → `get-recent-games`
 - "What's my most-played game?" → `get-games`
