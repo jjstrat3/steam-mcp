@@ -1,5 +1,9 @@
+import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+
+const require = createRequire(import.meta.url);
+const { version } = require("../package.json") as { version: string };
 import { registerSearchApps } from "./tools/search-apps.js";
 import { registerGetStoreDetails } from "./tools/get-store-details.js";
 import { registerGetGames } from "./tools/get-games.js";
@@ -9,12 +13,13 @@ import { registerGetFriendList } from "./tools/get-friend-list.js";
 import { registerGetPlayerAchievements } from "./tools/get-player-achievements.js";
 import { registerGetCurrentPlayers } from "./tools/get-current-players.js";
 import { registerGetNews } from "./tools/get-news.js";
+import { registerGetPlaytimeAnalytics } from "./tools/get-playtime-analytics.js";
 
 const prefix = process.env.TOOL_PREFIX ?? "";
 
 const server = new McpServer({
   name: "steam-mcp",
-  version: "1.0.0",
+  version,
 });
 
 registerSearchApps(server, prefix);
@@ -26,6 +31,7 @@ registerGetFriendList(server, prefix);
 registerGetPlayerAchievements(server, prefix);
 registerGetCurrentPlayers(server, prefix);
 registerGetNews(server, prefix);
+registerGetPlaytimeAnalytics(server, prefix);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

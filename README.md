@@ -13,6 +13,7 @@ MCP server for the Steam Web API. Provides tools for searching Steam games, fetc
 | `get-player-summaries` | Profile info, online status, avatar, and currently playing game (up to 100 IDs) | Yes |
 | `get-friend-list` | Friend list with display names, Steam IDs, and friend-since dates (public profiles only) | Yes |
 | `get-player-achievements` | Achievement progress with unlock times and global unlock percentages | Yes |
+| `get-playtime-analytics` | Library playtime summary: recently played, most played, least played, and never played | Yes |
 | `get-current-players` | Current number of in-game players | No |
 | `get-news` | Latest news articles and patch notes | No |
 
@@ -41,7 +42,7 @@ Your 64-bit Steam ID is the number in your Steam profile URL (e.g., `https://ste
 
 | Variable | Required | Description |
 |---|---|---|
-| `STEAM_API_KEY` | Some tools | Steam Web API key (required for `search-apps`, `get-games`, `get-recent-games`, `get-player-summaries`, `get-friend-list`, and `get-player-achievements`; optional for `get-store-details`, `get-current-players`, and `get-news`) |
+| `STEAM_API_KEY` | Some tools | Steam Web API key (required for `search-apps`, `get-games`, `get-recent-games`, `get-player-summaries`, `get-friend-list`, `get-player-achievements`, and `get-playtime-analytics`; optional for `get-store-details`, `get-current-players`, and `get-news`) |
 | `STEAM_USER_ID` | No | Default 64-bit Steam ID (can be overridden per-call) |
 | `TOOL_PREFIX` | No | Prefix for tool names (e.g., `steam_` makes `steam_search-apps`) |
 
@@ -136,3 +137,5 @@ Manual `v*` tag pushes still create a GitHub Release as before.
 - "Show my achievement progress in Hollow Knight" → `search-apps` + `get-player-achievements`
 - "How many people are playing CS2 right now?" → `search-apps` + `get-current-players`
 - "What's the latest news for Factorio?" → `search-apps` + `get-news`
+- "Analyze my Steam library playtime" → `get-playtime-analytics`
+- "What games have I never played?" → `get-playtime-analytics`

@@ -8,8 +8,8 @@ MCP server providing Steam Web API access to AI assistants.
 - **Runtime**: Node.js with ES modules (CI and Docker currently use Node 24, but `package.json` does not declare an `engines` requirement)
 - **Language**: TypeScript (ES2022 target, strict mode)
 - **Transport**: stdio (for Claude Desktop, Docker, MCP Inspector)
-- **Package**: `steam-mcp` v1.0.0
-- **Tools**: 9 registered tools for Steam API access
+- **Package**: `steam-mcp` v1.1.0
+- **Tools**: 10 registered tools for Steam API access
 - **Tests**: Vitest unit tests for API functions, cache module, and select tools
 - **Linting**: ESLint with TypeScript plugin
 
@@ -37,7 +37,8 @@ steam-mcp/
 │       ├── get-friend-list.ts          # + get-friend-list.test.ts
 │       ├── get-player-achievements.ts  # + get-player-achievements.test.ts
 │       ├── get-current-players.ts
-│       └── get-news.ts
+│       ├── get-news.ts
+│       └── get-playtime-analytics.ts  # + get-playtime-analytics.test.ts
 ├── .env.example            # Sample environment variables
 ├── Dockerfile              # Multi-stage build (node:24-alpine)
 ├── eslint.config.js        # ESLint 9 flat config for TypeScript
@@ -71,6 +72,7 @@ steam-mcp/
 | `get-player-summaries` | Yes | Profile info, online status, avatar, currently playing, and privacy-aware summary output (up to 100 IDs) |
 | `get-friend-list` | Yes | Friend list with display names when enrichment succeeds; public profiles only |
 | `get-player-achievements` | Yes | Achievement progress with global unlock percentages, with unlocked entries sorted by recency |
+| `get-playtime-analytics` | Yes | Library playtime summary with four categories: recently played, most played, least played, never played |
 | `get-current-players` | No | Current in-game player count |
 | `get-news` | No | Latest news articles and patch notes (configurable count 1–50) |
 
