@@ -6,6 +6,7 @@ const require = createRequire(import.meta.url);
 const { version } = require("../package.json") as { version: string };
 import { registerSearchApps } from "./tools/search-apps.js";
 import { registerGetStoreDetails } from "./tools/get-store-details.js";
+import { registerCompareRegionalPrices } from "./tools/compare-regional-prices.js";
 import { registerGetGames } from "./tools/get-games.js";
 import { registerGetRecentGames } from "./tools/get-recent-games.js";
 import { registerGetPlayerSummaries } from "./tools/get-player-summaries.js";
@@ -24,6 +25,7 @@ const server = new McpServer({
 
 registerSearchApps(server, prefix);
 registerGetStoreDetails(server, prefix);
+registerCompareRegionalPrices(server, prefix);
 registerGetGames(server, prefix);
 registerGetRecentGames(server, prefix);
 registerGetPlayerSummaries(server, prefix);
