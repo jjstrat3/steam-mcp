@@ -4,6 +4,26 @@ on:
   push:
     branches: [main, master]
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to build and publish (for example refs/tags/v2.0.0)
+        required: true
+        type: string
+      version:
+        description: Semver version without the leading v
+        required: true
+        type: string
+      default_branch:
+        description: Default branch name for branch/latest tags
+        required: true
+        type: string
+        default: master
+      publish_latest:
+        description: Also publish default-branch and latest tags
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       ref:
