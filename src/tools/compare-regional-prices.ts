@@ -28,9 +28,10 @@ function formatRegionPrice(data: StoreData): string {
     return "Price not available";
   }
 
-  const price = `${data.price_overview.final_formatted} [${data.price_overview.currency}]`;
+  const currency = data.price_overview.currency;
+  const price = `${data.price_overview.final_formatted} [${currency}]`;
   if (data.price_overview.discount_percent > 0) {
-    return `${price} (${data.price_overview.discount_percent}% off, was ${data.price_overview.initial_formatted})`;
+    return `${price} (${data.price_overview.discount_percent}% off, was ${data.price_overview.initial_formatted} [${currency}])`;
   }
 
   return price;

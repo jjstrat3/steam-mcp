@@ -117,7 +117,7 @@ describe("compare-regional-prices tool", () => {
     expect(result.content[0].text).toContain("- US: $19.99 [USD]");
     expect(result.content[0].text).toContain("- CA: $24.99 [USD]");
     expect(result.content[0].text).toContain(
-      "- GB: GBP 17.99 [GBP] (22% off, was GBP 22.99)"
+      "- GB: GBP 17.99 [GBP] (22% off, was GBP 22.99 [GBP])"
     );
     expect(result.content[0].text).toContain(
       "Multiple currencies detected (USD, GBP). Cross-currency deltas are intentionally omitted."
