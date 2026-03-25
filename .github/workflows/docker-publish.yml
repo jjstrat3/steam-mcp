@@ -4,6 +4,26 @@ on:
   push:
     branches: [main, master]
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to build and publish (for example refs/tags/v2.0.0)
+        required: true
+        type: string
+      version:
+        description: Semver version without the leading v
+        required: true
+        type: string
+      default_branch:
+        description: Default branch name for branch/latest tags
+        required: true
+        type: string
+        default: master
+      publish_latest:
+        description: Also publish default-branch and latest tags
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       ref:
@@ -39,7 +59,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event_name == 'workflow_call' && inputs.ref || github.ref }}
+          ref: ${{ inputs.ref != '' && inputs.ref || github.ref }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -52,7 +72,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels)
-        if: github.event_name == 'push'
+        if: inputs.version == ''
         id: meta
         uses: docker/metadata-action@v6
         with:
@@ -65,7 +85,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Derive manual release tags
-        if: github.event_name == 'workflow_call'
+        if: inputs.version != ''
         id: release-tags
         shell: bash
         run: |
@@ -76,7 +96,7 @@ jobs:
           echo "major=$major" >> "$GITHUB_OUTPUT"
 
       - name: Extract manual release metadata
-        if: github.event_name == 'workflow_call'
+        if: inputs.version != ''
         id: manual-meta
         uses: docker/metadata-action@v6
         with:
@@ -89,7 +109,7 @@ jobs:
             type=raw,value=latest,enable=${{ inputs.publish_latest }}
 
       - name: Build and push Docker image
-        if: github.event_name == 'push'
+        if: inputs.version == ''
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -102,7 +122,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build and push manual release image
-        if: github.event_name == 'workflow_call'
+        if: inputs.version != ''
         uses: docker/build-push-action@v7
         with:
           context: .
