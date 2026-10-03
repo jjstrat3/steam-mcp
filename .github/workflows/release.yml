@@ -28,7 +28,7 @@ jobs:
       commit_sha: ${{ steps.push.outputs.commit_sha }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
@@ -129,7 +129,7 @@ jobs:
       RELEASE_VERSION: ${{ github.ref_name }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Derive Docker image tag
         shell: bash
