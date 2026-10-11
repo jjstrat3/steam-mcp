@@ -5,18 +5,20 @@ MCP server providing Steam Web API access to AI assistants.
 ## Project Overview
 
 - **Type**: Model Context Protocol (MCP) server
-- **Runtime**: Node.js with ES modules (CI and Docker currently use Node 24, but `package.json` does not declare an `engines` requirement)
-- **Language**: TypeScript (ES2022 target, strict mode)
+- **Runtime**: Node.js with ES modules (`engines`: `^22.13.0 || >=24`; CI and Docker use Node 24)
+- **Language**: TypeScript 6 (ES2022 target, strict mode; `types: ["node"]` must stay in `tsconfig.json` because TS 6 no longer auto-loads `@types/*`)
 - **Transport**: stdio (for Claude Desktop, Docker, MCP Inspector)
-- **Package**: `steam-mcp` v1.1.0
-- **Tools**: 10 registered tools for Steam API access
-- **Tests**: Vitest unit tests for API functions, cache module, and select tools
-- **Linting**: ESLint with TypeScript plugin
+- **Package**: `steam-mcp` v2.0.0
+- **Tools**: 11 registered tools for Steam API access
+- **Tests**: Vitest unit tests for API functions, cache module, and select tools, plus multi-tool workflow tests
+- **Linting**: ESLint 10 with typescript-eslint
 
 ## Project Structure
 
 ```
 steam-mcp/
+├── .github/
+│   └── dependabot.yml      # Weekly npm + Actions updates (minor/patch grouped)
 ├── .github/workflows/
 │   ├── ci.yml              # PR quality gates (lint, test, build, docker)
 │   ├── docker-publish.yml  # Multi-platform Docker image → GHCR
@@ -31,6 +33,7 @@ steam-mcp/
 │   └── tools/              # One file per tool, each exports register* function
 │       ├── search-apps.ts
 │       ├── get-store-details.ts
+│       ├── compare-regional-prices.ts  # + compare-regional-prices.test.ts
 │       ├── get-games.ts
 │       ├── get-recent-games.ts
 │       ├── get-player-summaries.ts
@@ -38,10 +41,11 @@ steam-mcp/
 │       ├── get-player-achievements.ts  # + get-player-achievements.test.ts
 │       ├── get-current-players.ts
 │       ├── get-news.ts
-│       └── get-playtime-analytics.ts  # + get-playtime-analytics.test.ts
+│       ├── get-playtime-analytics.ts  # + get-playtime-analytics.test.ts
+│       └── workflow.test.ts            # Multi-tool workflow tests
 ├── .env.example            # Sample environment variables
-├── Dockerfile              # Multi-stage build (node:24-alpine)
-├── eslint.config.js        # ESLint 9 flat config for TypeScript
+├── Dockerfile              # Multi-stage build (node:24-alpine, runs as non-root `node`)
+├── eslint.config.js        # ESLint flat config for TypeScript
 ├── vitest.config.ts        # Vitest configuration
 ├── package.json
 └── tsconfig.json
@@ -67,6 +71,7 @@ steam-mcp/
 |------|:---:|-------------|
 | `search-apps` | Yes | Fuzzy search Steam apps by name using cached Fuse.js index |
 | `get-store-details` | No | Pricing, descriptions, screenshots, system requirements, reviews |
+| `compare-regional-prices` | No | Compare store pricing across 2–10 explicit country codes, with currency-safe comparisons |
 | `get-games` | Yes | All games owned by a user, sorted by playtime |
 | `get-recent-games` | Yes | Games played in the last 2 weeks with playtime |
 | `get-player-summaries` | Yes | Profile info, online status, avatar, currently playing, and privacy-aware summary output (up to 100 IDs) |
@@ -171,7 +176,7 @@ A custom `PlayerAchievementsUnavailableError` is thrown when Steam returns a non
 
 ## Docker
 
-Multi-stage build using `node:24-alpine`. Builder stage compiles TypeScript; runtime stage copies only `build/` and production dependencies.
+Multi-stage build using `node:24-alpine`. Builder stage compiles TypeScript; runtime stage copies only `build/` and production dependencies and runs as the image's unprivileged `node` user.
 
 ```bash
 # Build locally
@@ -193,7 +198,7 @@ docker run -i -e STEAM_API_KEY=xxx -e STEAM_USER_ID=xxx ghcr.io/jjstrat3/steam-m
 | `STEAM_USER_ID` | No | Default 64-bit Steam ID for user-specific tools (overridable per-call) |
 | `TOOL_PREFIX` | No | Prefix for tool names (e.g., `steam_` → `steam_search-apps`) |
 
-*Required for most tools; `get-store-details`, `get-current-players`, and `get-news` work without it.
+*Required for most tools; `get-store-details`, `compare-regional-prices`, `get-current-players`, and `get-news` work without it.
 
 ## CI/CD
 

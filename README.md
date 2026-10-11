@@ -51,6 +51,8 @@ Your 64-bit Steam ID is the number in your Steam profile URL (e.g., `https://ste
 
 ### Local (Node.js)
 
+Requires Node.js 22.13+ or 24+.
+
 ```bash
 npm install
 npm run build
