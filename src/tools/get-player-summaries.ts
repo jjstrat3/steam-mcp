@@ -16,16 +16,18 @@ export function registerGetPlayerSummaries(
   server: McpServer,
   prefix: string
 ): void {
-  server.tool(
+  server.registerTool(
     `${prefix}get-player-summaries`,
-    "Get Steam profile information for one or more users. Returns display name, avatar, online status, currently playing game, and more. Accepts up to 100 Steam IDs.",
     {
-      steamids: z
-        .string()
-        .optional()
-        .describe(
-          "Comma-delimited list of 64-bit Steam IDs (up to 100). Defaults to STEAM_USER_ID environment variable if not provided."
-        ),
+      description: "Get Steam profile information for one or more users. Returns display name, avatar, online status, currently playing game, and more. Accepts up to 100 Steam IDs.",
+      inputSchema: {
+        steamids: z
+          .string()
+          .optional()
+          .describe(
+            "Comma-delimited list of 64-bit Steam IDs (up to 100). Defaults to STEAM_USER_ID environment variable if not provided."
+          ),
+      },
     },
     async ({ steamids }) => {
       try {

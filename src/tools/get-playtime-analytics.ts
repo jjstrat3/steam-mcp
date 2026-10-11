@@ -22,22 +22,24 @@ export function registerGetPlaytimeAnalytics(
   server: McpServer,
   prefix: string
 ): void {
-  server.tool(
+  server.registerTool(
     `${prefix}get-playtime-analytics`,
-    "Summarize a Steam user's library playtime into categories: recently played, most played, least played, and never played",
     {
-      steamid: z
-        .string()
-        .optional()
-        .describe(
-          "64-bit Steam ID of the user. Defaults to STEAM_USER_ID environment variable if not provided."
-        ),
-      limit: z
-        .number()
-        .min(1)
-        .max(50)
-        .optional()
-        .describe("Max games shown per category (1-50, default 10)."),
+      description: "Summarize a Steam user's library playtime into categories: recently played, most played, least played, and never played",
+      inputSchema: {
+        steamid: z
+          .string()
+          .optional()
+          .describe(
+            "64-bit Steam ID of the user. Defaults to STEAM_USER_ID environment variable if not provided."
+          ),
+        limit: z
+          .number()
+          .min(1)
+          .max(50)
+          .optional()
+          .describe("Max games shown per category (1-50, default 10)."),
+      },
     },
     async ({ steamid, limit }) => {
       try {

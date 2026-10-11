@@ -43,10 +43,10 @@ function getSearchHandler(): (args: {
   query: string;
   limit: number;
 }) => Promise<ToolResponse> {
-  const tool = vi.fn();
-  const server = { tool } as unknown as McpServer;
+  const registerTool = vi.fn();
+  const server = { registerTool } as unknown as McpServer;
   registerSearchApps(server, "");
-  return tool.mock.calls[0][3] as (args: {
+  return registerTool.mock.calls[0][2] as (args: {
     query: string;
     limit: number;
   }) => Promise<ToolResponse>;
@@ -57,10 +57,10 @@ function getStoreHandler(): (args: {
   cc?: string;
   language?: string;
 }) => Promise<ToolResponse> {
-  const tool = vi.fn();
-  const server = { tool } as unknown as McpServer;
+  const registerTool = vi.fn();
+  const server = { registerTool } as unknown as McpServer;
   registerGetStoreDetails(server, "");
-  return tool.mock.calls[0][3] as (args: {
+  return registerTool.mock.calls[0][2] as (args: {
     appid: number;
     cc?: string;
     language?: string;
@@ -70,10 +70,10 @@ function getStoreHandler(): (args: {
 function getGamesHandler(): (args: {
   steamid?: string;
 }) => Promise<ToolResponse> {
-  const tool = vi.fn();
-  const server = { tool } as unknown as McpServer;
+  const registerTool = vi.fn();
+  const server = { registerTool } as unknown as McpServer;
   registerGetGames(server, "");
-  return tool.mock.calls[0][3] as (args: {
+  return registerTool.mock.calls[0][2] as (args: {
     steamid?: string;
   }) => Promise<ToolResponse>;
 }
@@ -83,10 +83,10 @@ function getAchievementsHandler(): (args: {
   steamid?: string;
   language?: string;
 }) => Promise<ToolResponse> {
-  const tool = vi.fn();
-  const server = { tool } as unknown as McpServer;
+  const registerTool = vi.fn();
+  const server = { registerTool } as unknown as McpServer;
   registerGetPlayerAchievements(server, "");
-  return tool.mock.calls[0][3] as (args: {
+  return registerTool.mock.calls[0][2] as (args: {
     appid: number;
     steamid?: string;
     language?: string;

@@ -44,10 +44,10 @@ function getHandler(): (args: {
   countries: string[];
   language?: string;
 }) => Promise<ToolResponse> {
-  const tool = vi.fn();
-  const server = { tool } as unknown as McpServer;
+  const registerTool = vi.fn();
+  const server = { registerTool } as unknown as McpServer;
   registerCompareRegionalPrices(server, "");
-  return tool.mock.calls[0][3] as (args: {
+  return registerTool.mock.calls[0][2] as (args: {
     appid: number;
     countries: string[];
     language?: string;

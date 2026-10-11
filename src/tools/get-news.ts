@@ -3,24 +3,26 @@ import { z } from "zod";
 import { fetchNews } from "../steam-api.js";
 
 export function registerGetNews(server: McpServer, prefix: string): void {
-  server.tool(
+  server.registerTool(
     `${prefix}get-news`,
-    "Get the latest news articles for a Steam game. Returns titles, URLs, content snippets, and dates. Does not require an API key.",
     {
-      appid: z.number().describe("Steam application ID of the game."),
-      count: z
-        .number()
-        .min(1)
-        .max(50)
-        .optional()
-        .describe("Number of news entries to return (1-50, default 5)."),
-      maxlength: z
-        .number()
-        .min(0)
-        .optional()
-        .describe(
-          "Maximum length of each news entry's content. 0 returns full content. Default 500."
-        ),
+      description: "Get the latest news articles for a Steam game. Returns titles, URLs, content snippets, and dates. Does not require an API key.",
+      inputSchema: {
+        appid: z.number().describe("Steam application ID of the game."),
+        count: z
+          .number()
+          .min(1)
+          .max(50)
+          .optional()
+          .describe("Number of news entries to return (1-50, default 5)."),
+        maxlength: z
+          .number()
+          .min(0)
+          .optional()
+          .describe(
+            "Maximum length of each news entry's content. 0 returns full content. Default 500."
+          ),
+      },
     },
     async ({ appid, count, maxlength }) => {
       try {

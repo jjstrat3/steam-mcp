@@ -3,17 +3,19 @@ import { z } from "zod";
 import { searchApps } from "../cache.js";
 
 export function registerSearchApps(server: McpServer, prefix: string): void {
-  server.tool(
+  server.registerTool(
     `${prefix}search-apps`,
-    "Search for Steam games by name using fuzzy matching. Handles typos, partial names, and variations. Returns top matching games with app IDs and similarity scores. Uses a cached list of ~240k Steam apps.",
     {
-      query: z.string().describe("Search query to find Steam apps by name"),
-      limit: z
-        .number()
-        .min(1)
-        .max(50)
-        .default(10)
-        .describe("Maximum number of results to return (1-50, default 10)"),
+      description: "Search for Steam games by name using fuzzy matching. Handles typos, partial names, and variations. Returns top matching games with app IDs and similarity scores. Uses a cached list of ~240k Steam apps.",
+      inputSchema: {
+        query: z.string().describe("Search query to find Steam apps by name"),
+        limit: z
+          .number()
+          .min(1)
+          .max(50)
+          .default(10)
+          .describe("Maximum number of results to return (1-50, default 10)"),
+      },
     },
     async ({ query, limit }) => {
       try {

@@ -96,19 +96,23 @@ steam-mcp/
 - Use `.js` extension in imports (required for Node16 module resolution)
 
 ### Tool Registration Pattern
-Each tool file exports a single `register*` function:
+Each tool file exports a single `register*` function that calls `server.registerTool` (the older `server.tool` overloads are deprecated in the MCP SDK):
 ```typescript
 export function registerToolName(server: McpServer, prefix: string): void {
-  server.tool(
+  server.registerTool(
     `${prefix}tool-name`,
-    "Description for the tool",
-    { param: z.string().describe("Parameter description") },
+    {
+      description: "Description for the tool",
+      inputSchema: { param: z.string().describe("Parameter description") },
+    },
     async ({ param }) => {
       // Implementation
     }
   );
 }
 ```
+
+Tool tests capture the handler by mocking `registerTool` and reading `registerTool.mock.calls[0][2]`.
 
 All register functions are imported and called in `src/index.ts` with the `TOOL_PREFIX` env var (defaults to `""`).
 

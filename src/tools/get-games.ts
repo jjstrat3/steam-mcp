@@ -7,16 +7,18 @@ function minutesToHours(minutes: number): string {
 }
 
 export function registerGetGames(server: McpServer, prefix: string): void {
-  server.tool(
+  server.registerTool(
     `${prefix}get-games`,
-    "Retrieve all games owned by a Steam user. Returns game names, App IDs, and total playtime in hours. Requires STEAM_API_KEY environment variable.",
     {
-      steamid: z
-        .string()
-        .optional()
-        .describe(
-          "64-bit Steam ID of the user. Defaults to STEAM_USER_ID environment variable if not provided."
-        ),
+      description: "Retrieve all games owned by a Steam user. Returns game names, App IDs, and total playtime in hours. Requires STEAM_API_KEY environment variable.",
+      inputSchema: {
+        steamid: z
+          .string()
+          .optional()
+          .describe(
+            "64-bit Steam ID of the user. Defaults to STEAM_USER_ID environment variable if not provided."
+          ),
+      },
     },
     async ({ steamid }) => {
       try {
