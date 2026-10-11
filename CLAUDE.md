@@ -5,7 +5,7 @@ MCP server providing Steam Web API access to AI assistants.
 ## Project Overview
 
 - **Type**: Model Context Protocol (MCP) server
-- **Runtime**: Node.js with ES modules (`engines`: `^22.13.0 || >=24`; CI and Docker use Node 24)
+- **Runtime**: Node.js with ES modules (`engines`: `^22.13.0 || ^24.0.0 || >=26.0.0`, the overlap of ESLint 10 and Vitest 5 support; CI and Docker use Node 24)
 - **Language**: TypeScript 6 (ES2022 target, strict mode; `types: ["node"]` must stay in `tsconfig.json` because TS 6 no longer auto-loads `@types/*`)
 - **Transport**: stdio (for Claude Desktop, Docker, MCP Inspector)
 - **Package**: `steam-mcp` v2.0.0
