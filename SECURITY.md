@@ -15,7 +15,8 @@ a fix will be developed and released as soon as possible.
 
 | Version | Supported |
 |---------|-----------|
-| 1.x     | Yes       |
+| 2.x     | Yes       |
+| 1.x     | No        |
 
 ## Scope
 
