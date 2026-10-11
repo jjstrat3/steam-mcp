@@ -32,10 +32,10 @@ function createGame(
 function getHandler(): (
   args: { steamid?: string; limit?: number }
 ) => Promise<ToolResponse> {
-  const tool = vi.fn();
-  const server = { tool } as unknown as McpServer;
+  const registerTool = vi.fn();
+  const server = { registerTool } as unknown as McpServer;
   registerGetPlaytimeAnalytics(server, "");
-  return tool.mock.calls[0][3] as (
+  return registerTool.mock.calls[0][2] as (
     args: { steamid?: string; limit?: number }
   ) => Promise<ToolResponse>;
 }

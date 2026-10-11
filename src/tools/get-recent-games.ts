@@ -10,16 +10,18 @@ export function registerGetRecentGames(
   server: McpServer,
   prefix: string
 ): void {
-  server.tool(
+  server.registerTool(
     `${prefix}get-recent-games`,
-    "Retrieve games played by a Steam user in the last 2 weeks. Returns game names, App IDs, recent playtime, and total playtime in hours. Requires STEAM_API_KEY environment variable.",
     {
-      steamid: z
-        .string()
-        .optional()
-        .describe(
-          "64-bit Steam ID of the user. Defaults to STEAM_USER_ID environment variable if not provided."
-        ),
+      description: "Retrieve games played by a Steam user in the last 2 weeks. Returns game names, App IDs, recent playtime, and total playtime in hours. Requires STEAM_API_KEY environment variable.",
+      inputSchema: {
+        steamid: z
+          .string()
+          .optional()
+          .describe(
+            "64-bit Steam ID of the user. Defaults to STEAM_USER_ID environment variable if not provided."
+          ),
+      },
     },
     async ({ steamid }) => {
       try {

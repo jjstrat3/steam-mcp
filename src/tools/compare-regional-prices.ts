@@ -185,31 +185,33 @@ export function registerCompareRegionalPrices(
   server: McpServer,
   prefix: string
 ): void {
-  server.tool(
+  server.registerTool(
     `${prefix}compare-regional-prices`,
-    "Compare Steam store pricing across multiple explicit country codes. Shows local prices, discounts, and currency-safe regional comparisons without requiring a Steam API key.",
     {
-      appid: z.number().describe("Steam application ID"),
-      countries: z
-        .array(
-          z
-            .string()
-            .trim()
-            .toUpperCase()
-            .regex(/^[A-Z]{2}$/)
-            .describe("Two-letter country code (for example 'us', 'gb', 'de').")
-        )
-        .min(2)
-        .max(10)
-        .describe(
-          "List of country codes to compare. Provide 2 to 10 entries."
-        ),
-      language: z
-        .string()
-        .optional()
-        .describe(
-          "Language for store text fields (for example 'english', 'french', 'german')."
-        ),
+      description: "Compare Steam store pricing across multiple explicit country codes. Shows local prices, discounts, and currency-safe regional comparisons without requiring a Steam API key.",
+      inputSchema: {
+        appid: z.number().describe("Steam application ID"),
+        countries: z
+          .array(
+            z
+              .string()
+              .trim()
+              .toUpperCase()
+              .regex(/^[A-Z]{2}$/)
+              .describe("Two-letter country code (for example 'us', 'gb', 'de').")
+          )
+          .min(2)
+          .max(10)
+          .describe(
+            "List of country codes to compare. Provide 2 to 10 entries."
+          ),
+        language: z
+          .string()
+          .optional()
+          .describe(
+            "Language for store text fields (for example 'english', 'french', 'german')."
+          ),
+      },
     },
     async ({ appid, countries, language }) => {
       try {

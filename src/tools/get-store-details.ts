@@ -50,24 +50,26 @@ export function registerGetStoreDetails(
   server: McpServer,
   prefix: string
 ): void {
-  server.tool(
+  server.registerTool(
     `${prefix}get-store-details`,
-    "Fetch comprehensive store information for a Steam game including pricing, descriptions, screenshots, videos, system requirements, and reviews. Supports region-specific pricing. No Steam API key required.",
     {
-      appid: z.number().describe("Steam application ID"),
-      cc: z
-        .string()
-        .length(2)
-        .optional()
-        .describe(
-          "Two-letter country code for regional pricing (e.g., 'us', 'gb', 'de')"
-        ),
-      language: z
-        .string()
-        .optional()
-        .describe(
-          "Language for descriptions (e.g., 'english', 'french', 'german')"
-        ),
+      description: "Fetch comprehensive store information for a Steam game including pricing, descriptions, screenshots, videos, system requirements, and reviews. Supports region-specific pricing. No Steam API key required.",
+      inputSchema: {
+        appid: z.number().describe("Steam application ID"),
+        cc: z
+          .string()
+          .length(2)
+          .optional()
+          .describe(
+            "Two-letter country code for regional pricing (e.g., 'us', 'gb', 'de')"
+          ),
+        language: z
+          .string()
+          .optional()
+          .describe(
+            "Language for descriptions (e.g., 'english', 'french', 'german')"
+          ),
+      },
     },
     async ({ appid, cc, language }) => {
       try {

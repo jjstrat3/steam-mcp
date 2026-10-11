@@ -10,23 +10,25 @@ export function registerGetPlayerAchievements(
   server: McpServer,
   prefix: string
 ): void {
-  server.tool(
+  server.registerTool(
     `${prefix}get-player-achievements`,
-    "Get a player's achievements for a specific game. Shows which achievements are unlocked, unlock times, and global unlock percentages. Requires STEAM_API_KEY.",
     {
-      appid: z.number().describe("Steam application ID of the game."),
-      steamid: z
-        .string()
-        .optional()
-        .describe(
-          "64-bit Steam ID of the user. Defaults to STEAM_USER_ID environment variable if not provided."
-        ),
-      language: z
-        .string()
-        .optional()
-        .describe(
-          "Language code for localized achievement names and descriptions (e.g., 'english', 'french', 'german')."
-        ),
+      description: "Get a player's achievements for a specific game. Shows which achievements are unlocked, unlock times, and global unlock percentages. Requires STEAM_API_KEY.",
+      inputSchema: {
+        appid: z.number().describe("Steam application ID of the game."),
+        steamid: z
+          .string()
+          .optional()
+          .describe(
+            "64-bit Steam ID of the user. Defaults to STEAM_USER_ID environment variable if not provided."
+          ),
+        language: z
+          .string()
+          .optional()
+          .describe(
+            "Language code for localized achievement names and descriptions (e.g., 'english', 'french', 'german')."
+          ),
+      },
     },
     async ({ appid, steamid, language }) => {
       try {

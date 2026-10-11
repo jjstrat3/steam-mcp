@@ -6,11 +6,13 @@ export function registerGetCurrentPlayers(
   server: McpServer,
   prefix: string
 ): void {
-  server.tool(
+  server.registerTool(
     `${prefix}get-current-players`,
-    "Get the current number of players in a Steam game. Does not require an API key.",
     {
-      appid: z.number().describe("Steam application ID of the game."),
+      description: "Get the current number of players in a Steam game. Does not require an API key.",
+      inputSchema: {
+        appid: z.number().describe("Steam application ID of the game."),
+      },
     },
     async ({ appid }) => {
       try {

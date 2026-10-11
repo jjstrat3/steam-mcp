@@ -6,22 +6,24 @@ export function registerGetFriendList(
   server: McpServer,
   prefix: string
 ): void {
-  server.tool(
+  server.registerTool(
     `${prefix}get-friend-list`,
-    "Get the friend list for a Steam user. Returns friend display names, Steam IDs, and when they became friends. Only works if the user's profile is public.",
     {
-      steamid: z
-        .string()
-        .optional()
-        .describe(
-          "64-bit Steam ID of the user. Defaults to STEAM_USER_ID environment variable if not provided."
-        ),
-      relationship: z
-        .enum(["all", "friend"])
-        .optional()
-        .describe(
-          'Relationship filter. "friend" (default) returns only friends, "all" returns all relationships.'
-        ),
+      description: "Get the friend list for a Steam user. Returns friend display names, Steam IDs, and when they became friends. Only works if the user's profile is public.",
+      inputSchema: {
+        steamid: z
+          .string()
+          .optional()
+          .describe(
+            "64-bit Steam ID of the user. Defaults to STEAM_USER_ID environment variable if not provided."
+          ),
+        relationship: z
+          .enum(["all", "friend"])
+          .optional()
+          .describe(
+            'Relationship filter. "friend" (default) returns only friends, "all" returns all relationships.'
+          ),
+      },
     },
     async ({ steamid, relationship }) => {
       try {
