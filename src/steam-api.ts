@@ -117,7 +117,9 @@ export async function fetchWithRetry(
       }
 
       if (isTimeout) {
-        throw new Error(`Request timed out after ${timeoutMs}ms`);
+        throw new Error(`Request timed out after ${timeoutMs}ms`, {
+          cause: error,
+        });
       }
 
       if (isNetworkError) {
