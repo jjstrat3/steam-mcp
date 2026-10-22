@@ -1,0 +1,88 @@
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: steam-mcp@2.0.0
+npm warn Found: typescript@6.0.3
+npm warn node_modules/typescript
+npm warn   peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/eslint-plugin@8.71.2
+npm warn   node_modules/@typescript-eslint/eslint-plugin
+npm warn     @typescript-eslint/eslint-plugin@"8.71.2" from typescript-eslint@8.71.2
+npm warn     node_modules/typescript-eslint
+npm warn     1 more (the root project)
+npm warn   9 more (@typescript-eslint/parser, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/eslint-plugin@8.71.2
+npm warn node_modules/@typescript-eslint/eslint-plugin
+npm warn   @typescript-eslint/eslint-plugin@"8.71.2" from typescript-eslint@8.71.2
+npm warn   node_modules/typescript-eslint
+npm warn   1 more (the root project)
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: steam-mcp@2.0.0
+npm warn Found: typescript@6.0.3
+npm warn node_modules/typescript
+npm warn   peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/eslint-plugin@8.71.2
+npm warn   node_modules/@typescript-eslint/eslint-plugin
+npm warn     @typescript-eslint/eslint-plugin@"8.71.2" from typescript-eslint@8.71.2
+npm warn     node_modules/typescript-eslint
+npm warn     1 more (the root project)
+npm warn   9 more (@typescript-eslint/parser, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/parser@8.71.2
+npm warn node_modules/@typescript-eslint/parser
+npm warn   peer @typescript-eslint/parser@"^8.71.2" from @typescript-eslint/eslint-plugin@8.71.2
+npm warn   node_modules/@typescript-eslint/eslint-plugin
+npm warn   2 more (typescript-eslint, the root project)
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: steam-mcp@2.0.0
+npm warn Found: typescript@6.0.3
+npm warn node_modules/typescript
+npm warn   peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/eslint-plugin@8.71.2
+npm warn   node_modules/@typescript-eslint/eslint-plugin
+npm warn     @typescript-eslint/eslint-plugin@"8.71.2" from typescript-eslint@8.71.2
+npm warn     node_modules/typescript-eslint
+npm warn     1 more (the root project)
+npm warn   9 more (@typescript-eslint/parser, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/parser@8.71.2
+npm warn node_modules/@typescript-eslint/parser
+npm warn   peer @typescript-eslint/parser@"^8.71.2" from @typescript-eslint/eslint-plugin@8.71.2
+npm warn   node_modules/@typescript-eslint/eslint-plugin
+npm warn   2 more (typescript-eslint, the root project)
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: steam-mcp@2.0.0
+npm warn Found: typescript@6.0.3
+npm warn node_modules/typescript
+npm warn   peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/eslint-plugin@8.71.2
+npm warn   node_modules/@typescript-eslint/eslint-plugin
+npm warn     @typescript-eslint/eslint-plugin@"8.71.2" from typescript-eslint@8.71.2
+npm warn     node_modules/typescript-eslint
+npm warn     1 more (the root project)
+npm warn   9 more (@typescript-eslint/parser, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer typescript@">=4.8.4 <6.1.0" from typescript-eslint@8.71.2
+npm warn node_modules/typescript-eslint
+npm warn   dev typescript-eslint@"^8.71.2" from the root project
+npm error code ERESOLVE
+npm error ERESOLVE unable to resolve dependency tree
+npm error
+npm error While resolving: steam-mcp@2.0.0
+npm error Found: typescript@7.0.2
+npm error node_modules/typescript
+npm error   dev typescript@"7.0.2" from the root project
+npm error
+npm error Could not resolve dependency:
+npm error peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/parser@8.72.0
+npm error node_modules/@typescript-eslint/parser
+npm error   dev @typescript-eslint/parser@"^8.71.2" from the root project
+npm error   peer @typescript-eslint/parser@"^8.72.0" from @typescript-eslint/eslint-plugin@8.72.0
+npm error   node_modules/@typescript-eslint/eslint-plugin
+npm error     dev @typescript-eslint/eslint-plugin@"^8.71.2" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry this command with --force or --legacy-peer-deps to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/ubuntu/.npm/_logs/2026-10-22T13_56_21_572Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/ubuntu/.npm/_logs/2026-10-22T13_56_21_572Z-debug-0.log

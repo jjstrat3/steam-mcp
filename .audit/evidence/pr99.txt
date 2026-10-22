@@ -1,0 +1,48 @@
+NAME pr99
+DIR /tmp/steam-bumps/pr99
+HEAD 0f5544c2589ab5a2dc6e41d39cff9453d7e2117e
+NODE v24.22.1 NPM 11.19.1
+=== npm ci ===
+
+added 229 packages, and audited 230 packages in 6s
+
+76 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+NPM_CI exit 0
+=== tsc version ===
+Version 6.0.3
+=== typecheck ===
+
+> steam-mcp@2.0.0 typecheck
+> tsc --noEmit
+
+TYPECHECK exit 0
+=== lint ===
+
+> steam-mcp@2.0.0 lint
+> eslint src --ext .ts
+
+LINT exit 0
+=== test ===
+
+> steam-mcp@2.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /tmp/steam-bumps/pr99
+
+
+ Test Files  7 passed (7)
+      Tests  72 passed (72)
+   Start at  13:55:17
+   Duration  1.54s (tests 69%, transform 17%, import 13%, worker 1%)
+
+TEST exit 0
+=== build ===
+
+> steam-mcp@2.0.0 build
+> tsc
+
+BUILD exit 0

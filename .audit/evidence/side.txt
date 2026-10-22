@@ -1,0 +1,77 @@
+=== install aliases ===
+
+added 232 packages, and audited 233 packages in 2s
+
+76 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+INSTALL 0
+=== versions ===
+tsc Version 7.0.2
+tsc6 Version 6.0.3
+require typescript 6.0.3
+has createProgram function
+=== tsc shim ===
+/tmp/steam-bumps/side/node_modules/@typescript/native/bin/tsc
+#!/usr/bin/env node
+import "../lib/tsc.js";
+=== package.json devDeps ===
+{
+  "@eslint/js": "^10.0.1",
+  "@types/node": "^24.19.1",
+  "@typescript-eslint/eslint-plugin": "^8.71.0",
+  "@typescript-eslint/parser": "^8.71.0",
+  "@typescript/native": "npm:typescript@^7.0.2",
+  "@vitest/coverage-v8": "^5.0.3",
+  "eslint": "^10.12.0",
+  "typescript": "npm:@typescript/typescript6@^6.0.2",
+  "typescript-eslint": "^8.71.0",
+  "vitest": "^5.0.3"
+}
+=== typecheck ===
+
+> steam-mcp@2.0.0 typecheck
+> tsc --noEmit
+
+TYPECHECK 0
+=== lint ===
+
+> steam-mcp@2.0.0 lint
+> eslint src --ext .ts
+
+LINT 0
+=== test ===
+
+> steam-mcp@2.0.0 test
+> vitest run
+
+
+ RUN  v5.0.3 /tmp/steam-bumps/side
+
+
+ Test Files  7 passed (7)
+      Tests  72 passed (72)
+   Start at  13:56:44
+   Duration  2.44s (tests 78%, import 12%, transform 9%, worker 1%)
+
+TEST 0
+=== build ===
+
+> steam-mcp@2.0.0 build
+> tsc
+
+BUILD 0
+=== showConfig selected ===
+declaration,esModuleInterop,forceConsistentCasingInFileNames,module,moduleDetection,moduleResolution,outDir,resolveJsonModule,rootDir,skipLibCheck,strict,target,types
+target="es2022"
+module="node16"
+moduleResolution="node16"
+strict=true
+rootDir="./src"
+types=["node"]
+esModuleInterop=true
+noUncheckedSideEffectImports=undefined
+stableTypeOrdering=undefined
+libReplacement=undefined
+moduleDetection="force"
