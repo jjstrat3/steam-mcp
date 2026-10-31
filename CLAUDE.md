@@ -6,7 +6,7 @@ MCP server providing Steam Web API access to AI assistants.
 
 - **Type**: Model Context Protocol (MCP) server
 - **Runtime**: Node.js with ES modules (`engines`: `^22.13.0 || ^24.0.0 || >=26.0.0`, the overlap of ESLint 10 and Vitest 5 support; CI and Docker use Node 24)
-- **Language**: TypeScript 6 (ES2022 target, strict mode; `types: ["node"]` must stay in `tsconfig.json` because TS 6 no longer auto-loads `@types/*`)
+- **Language**: Build and typecheck run TypeScript 7 through the `@typescript/native` alias. The `typescript` package is `@typescript/typescript6`, because typescript-eslint imports the TypeScript 6 API and TypeScript 7 does not ship one. Do not replace that alias with `typescript@7` until typescript-eslint accepts TypeScript 7. `npm ci` and ESLint both fail on that package. Target stays ES2022 with `strict` on. Keep `types: ["node"]` in `tsconfig.json`. TypeScript 6 and 7 do not auto-load `@types/*`.
 - **Transport**: stdio (for Claude Desktop, Docker, MCP Inspector)
 - **Package**: `steam-mcp` v2.0.0
 - **Tools**: 11 registered tools for Steam API access
@@ -58,7 +58,8 @@ steam-mcp/
 | `@modelcontextprotocol/sdk` | MCP server framework (`McpServer`, `StdioServerTransport`) |
 | `fuse.js` | Fuzzy search for the app name index (~240k apps) |
 | `zod` | Schema validation for tool parameters |
-| `typescript` (dev) | Compiler |
+| `@typescript/native` (dev) | TypeScript 7 `tsc` for build and typecheck |
+| `typescript` (dev) | TypeScript 6 API for typescript-eslint |
 | `@types/node` (dev) | Node.js type definitions |
 | `eslint` (dev) | Linter for code quality |
 | `@typescript-eslint/*` (dev) | TypeScript support for ESLint |

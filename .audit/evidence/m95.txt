@@ -1,0 +1,43 @@
+NAME m95
+DIR /tmp/steam-bumps/m95
+HEAD 3fab0698cfd0f1e12e708fcca324c5b89678ce76
+NODE v24.22.1 NPM 11.19.1
+=== npm ci ===
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: @typescript-eslint/eslint-plugin@8.71.1
+npm error Found: typescript@7.0.2
+npm error node_modules/typescript
+npm error   dev typescript@"^7.0.2" from the root project
+npm error   peer typescript@">=4.8.4" from ts-api-utils@2.5.0
+npm error   node_modules/ts-api-utils
+npm error     ts-api-utils@"^2.5.0" from @typescript-eslint/eslint-plugin@8.71.1
+npm error     node_modules/@typescript-eslint/eslint-plugin
+npm error       dev @typescript-eslint/eslint-plugin@"^8.71.0" from the root project
+npm error     ts-api-utils@"^2.5.0" from @typescript-eslint/type-utils@8.71.1
+npm error     node_modules/@typescript-eslint/eslint-plugin/node_modules/@typescript-eslint/type-utils
+npm error       @typescript-eslint/type-utils@"8.71.1" from @typescript-eslint/eslint-plugin@8.71.1
+npm error       node_modules/@typescript-eslint/eslint-plugin
+npm error         dev @typescript-eslint/eslint-plugin@"^8.71.0" from the root project
+npm error     6 more (@typescript-eslint/typescript-estree, ...)
+npm error
+npm error Could not resolve dependency:
+npm error peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/eslint-plugin@8.71.1
+npm error node_modules/@typescript-eslint/eslint-plugin
+npm error   dev @typescript-eslint/eslint-plugin@"^8.71.0" from the root project
+npm error
+npm error Conflicting peer dependency: typescript@6.0.3
+npm error node_modules/typescript
+npm error   peer typescript@">=4.8.4 <6.1.0" from @typescript-eslint/eslint-plugin@8.71.1
+npm error   node_modules/@typescript-eslint/eslint-plugin
+npm error     dev @typescript-eslint/eslint-plugin@"^8.71.0" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry this command with --force or --legacy-peer-deps to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/ubuntu/.npm/_logs/2026-10-22T13_55_05_495Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/ubuntu/.npm/_logs/2026-10-22T13_55_05_495Z-debug-0.log
+NPM_CI exit 1
+STOP_AFTER_INSTALL

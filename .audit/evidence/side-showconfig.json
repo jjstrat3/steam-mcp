@@ -1,0 +1,49 @@
+{
+    "compilerOptions": {
+        "declaration": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "node16",
+        "moduleResolution": "node16",
+        "outDir": "./build",
+        "resolveJsonModule": true,
+        "rootDir": "./src",
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "es2022",
+        "types": [
+            "node"
+        ],
+        "esModuleInterop": true,
+        "moduleDetection": "force"
+    },
+    "files": [
+        "./src/cache.test.ts",
+        "./src/cache.ts",
+        "./src/index.ts",
+        "./src/steam-api.test.ts",
+        "./src/steam-api.ts",
+        "./src/types.ts",
+        "./src/tools/compare-regional-prices.test.ts",
+        "./src/tools/compare-regional-prices.ts",
+        "./src/tools/get-current-players.ts",
+        "./src/tools/get-friend-list.test.ts",
+        "./src/tools/get-friend-list.ts",
+        "./src/tools/get-games.ts",
+        "./src/tools/get-news.ts",
+        "./src/tools/get-player-achievements.test.ts",
+        "./src/tools/get-player-achievements.ts",
+        "./src/tools/get-player-summaries.ts",
+        "./src/tools/get-playtime-analytics.test.ts",
+        "./src/tools/get-playtime-analytics.ts",
+        "./src/tools/get-recent-games.ts",
+        "./src/tools/get-store-details.ts",
+        "./src/tools/search-apps.ts",
+        "./src/tools/workflow.test.ts"
+    ],
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "/tmp/steam-bumps/side/build"
+    ]
+}

@@ -1,0 +1,43 @@
+=== install @types/node 26 on top of PR99 ===
+
+added 229 packages, and audited 230 packages in 2s
+
+76 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+INSTALL 0
+types ^26.6.4
+eslint ^8.71.2
+sdk ^1.32.1
+zod ^4.6.7
+vitest ^5.0.3
+
+> steam-mcp@2.0.0 typecheck
+> tsc --noEmit
+
+TYPECHECK 0
+
+> steam-mcp@2.0.0 lint
+> eslint src --ext .ts
+
+LINT 0
+
+> steam-mcp@2.0.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /tmp/steam-bumps/combo9699
+
+
+ Test Files  7 passed (7)
+      Tests  72 passed (72)
+   Start at  13:56:45
+   Duration  2.45s (tests 83%, import 8%, transform 8%, worker 1%)
+
+TEST 0
+
+> steam-mcp@2.0.0 build
+> tsc
+
+BUILD 0
