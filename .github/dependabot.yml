@@ -5,6 +5,11 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    ignore:
+      # CI and the Docker image run Node 24. Drop this once the repo moves to Node 26.
+      - dependency-name: "@types/node"
+        update-types:
+          - "version-update:semver-major"
     groups:
       # These packages must move in lockstep or npm fails to resolve peers.
       typescript-eslint:
